@@ -121,3 +121,44 @@ CI moved to Node 22 to satisfy Vite 8's engine range.
 dependency untouched. But it means adopting an end-of-life test runner to preserve an end-of-life
 bundler — buying the appearance of having changed nothing at the cost of a current toolchain.
 
+## Workspace: persistent docket, continuous case file
+
+Desktop keeps a searchable docket beside one continuous assessment file. Status and industry
+controls narrow the docket; anchored sections keep overview, financials and score breakdown in one
+reading context. Mobile turns the same structure into docket-then-detail navigation and restores
+the query, filters, selection and scroll position on return.
+
+This is the repeated analyst motion: triage a queue, inspect evidence, return without reconstructing
+the queue. A continuous file also keeps relationships visible that independent tabs would hide.
+
+**Rejected: a risk-board primary navigation.** Lanes communicate workload at five records but become
+long, uneven lists at two hundred. Complete and Pending survive as compact filters instead.
+
+**Rejected: a tab-only dossier.** It reduces first-view density by hiding evidence categories from
+one another. Section navigation provides the same wayfinding without making comparison a memory
+task.
+
+**Rejected: global risk and thin-file filters.** Those fields live behind detail endpoints. Fetching
+every credit report to power a docket control would reverse list-then-detail; filtering only cached
+files would present an incomplete population as complete.
+
+## Attention: high risk or pending, stated explicitly
+
+Only a reported High risk band or a Pending assessment earns an attention cue. Thin-file status and
+weak cash position remain visible evidence but are not silently promoted into a decision rule the
+fixture never states.
+
+**Rejected: deriving urgency from score or cash thresholds.** The fixture supplies no scoring
+methodology or decision thresholds, so the interface cannot invent them.
+
+## Visualisation: CSS and SVG, no chart dependency
+
+The dashboard needs a score position and four category bars. Semantic HTML with CSS, plus a small
+SVG only where an axis needs explicit geometry, keeps the scale inspectable and accessible without
+adding a chart runtime.
+
+Any maximum not present in the fixture is disclosed on the artifact. Empty and Pending sections
+state absence in words instead of drawing zeroed furniture.
+
+**Rejected: a chart library.** It would add dependency and abstraction cost for five simple marks,
+without solving a capability this data requires.
