@@ -212,3 +212,16 @@ state absence in words instead of drawing zeroed furniture.
 
 **Rejected: a chart library.** It would add dependency and abstraction cost for five simple marks,
 without solving a capability this data requires.
+
+## Queue density: preserve controls, compress their deck
+
+At 2,000 files in a 1536×1152 capture, the docket controls occupied approximately 470px before the
+first complete row—41% of the viewport height. Search and status remain permanently visible because
+they are the primary triage actions, but the title/count share one line, industry/sort/reviewed-risk
+selectors share one row, and list rows use a tighter ledger rhythm. Active controls gain one reset
+action rather than forcing analysts to reverse several filters manually.
+
+**Rejected: pagination as a density fix.** Pagination does not recover the vertical space spent by
+the control deck, duplicates navigation already handled by the virtual window, and splits composed
+search results into arbitrary pages. A production server may later use cursor pagination behind the
+same continuous queue, but that is an API concern rather than this layout correction.

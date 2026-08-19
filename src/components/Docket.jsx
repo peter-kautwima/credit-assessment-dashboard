@@ -20,6 +20,14 @@ const sorters = {
 		(right.assessment?.id ?? Number.POSITIVE_INFINITY),
 }
 
+const initialFilters = {
+	query: '',
+	status: 'All',
+	industry: 'All',
+	risk: 'All',
+	sort: 'name',
+}
+
 function observeDocketRect(instance, callback) {
 	const element = instance.scrollElement
 	if (!element) return undefined
@@ -91,13 +99,7 @@ export function filterAndSortDocket(
 }
 
 export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportSummaries = {} }) {
-	const [filters, setFilters] = useState({
-		query: '',
-		status: 'All',
-		industry: 'All',
-		risk: 'All',
-		sort: 'name',
-	})
+	const [filters, setFilters] = useState(initialFilters)
 	const [announcedCount, setAnnouncedCount] = useState(entries.length)
 	const [pendingFocusIndex, setPendingFocusIndex] = useState(null)
 	const searchRef = useRef(null)
@@ -130,7 +132,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		count: shouldVirtualize ? visibleEntries.length : 0,
 		enabled: shouldVirtualize,
 		getScrollElement: () => listRef.current,
-		estimateSize: () => 142,
+		estimateSize: () => 116,
 		getItemKey: (index) => visibleEntries[index].business.id,
 		overscan: 6,
 		initialRect: { width: 432, height: 720 },
@@ -206,6 +208,15 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		applyFilter(event.target.name, event.target.value)
 	}
 
+	function resetFilters() {
+		setFilters(initialFilters)
+		onVisibleChange?.(
+			filterAndSortDocket(entries, initialFilters, reportSummaries).map(
+				(entry) => entry.business.id,
+			),
+		)
+	}
+
 	function handleSearchKeyDown(event) {
 		if (event.key !== 'Escape') return
 		event.preventDefault()
@@ -246,9 +257,16 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 	return (
 		<aside className="docket" aria-labelledby="docket-title">
 			<div className="docket__header">
-				<div>
-					<h2 id="docket-title">Assessment docket</h2>
-					<p>{fileCountLabel(visibleEntries.length)}</p>
+				<div className="docket__titlebar">
+					<div>
+						<h2 id="docket-title">Assessment docket</h2>
+						<p>{fileCountLabel(visibleEntries.length)}</p>
+					</div>
+					{Object.entries(filters).some(([name, value]) => value !== initialFilters[name]) && (
+						<button type="button" className="docket__reset" onClick={resetFilters}>
+							Clear filters
+						</button>
+					)}
 				</div>
 
 				<label className="docket__search">
@@ -293,7 +311,12 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 				<div className="docket__filters">
 					<label>
 						<span>Industry</span>
-						<select id="industry-filter" name="industry" onChange={updateFilter}>
+						<select
+							id="industry-filter"
+							name="industry"
+							value={filters.industry}
+							onChange={updateFilter}
+						>
 							<option>All</option>
 							{industries.map((name) => (
 								<option key={name}>{name}</option>
@@ -302,21 +325,21 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 					</label>
 					<label>
 						<span>Sort by</span>
-						<select id="sort-order" name="sort" onChange={updateFilter} defaultValue="name">
-							<option value="name">Business name A–Z</option>
-							<option value="nameDesc">Business name Z–A</option>
-							<option value="date">Newest assessment</option>
-							<option value="dateAsc">Oldest assessment</option>
+						<select id="sort-order" name="sort" value={filters.sort} onChange={updateFilter}>
+							<option value="name">Name A–Z</option>
+							<option value="nameDesc">Name Z–A</option>
+							<option value="date">Newest first</option>
+							<option value="dateAsc">Oldest first</option>
 							<option value="industry">Industry A–Z</option>
 							<option value="reference">File reference</option>
-							<option value="risk">Reviewed risk — High first</option>
-							<option value="scoreDesc">Reviewed score — High first</option>
-							<option value="scoreAsc">Reviewed score — Low first</option>
+							<option value="risk">Risk: High first</option>
+							<option value="scoreDesc">Score: High first</option>
+							<option value="scoreAsc">Score: Low first</option>
 						</select>
 					</label>
 					<label>
 						<span>Reviewed risk</span>
-						<select name="risk" onChange={updateFilter}>
+						<select name="risk" value={filters.risk} onChange={updateFilter}>
 							<option value="All">All files</option>
 							<option value="High">High</option>
 							<option value="Medium">Medium</option>

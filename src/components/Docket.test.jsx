@@ -63,6 +63,21 @@ describe('Docket', () => {
 		expect(screen.getByText('Echo Tech Solutions')).toBeVisible()
 	})
 
+	it('clears the composed control state in one action', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+
+		await user.click(screen.getByRole('button', { name: 'Pending: 1' }))
+		await user.selectOptions(screen.getByLabelText('Industry'), 'Technology')
+		expect(screen.getByText('1 file in view')).toBeVisible()
+
+		await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+
+		expect(screen.getAllByText('3 files in view')[0]).toBeVisible()
+		expect(screen.getByLabelText('Industry')).toHaveValue('All')
+		expect(screen.getByRole('button', { name: 'All: 3' })).toHaveAttribute('aria-pressed', 'true')
+	})
+
 	it('keeps workflow status and loaded risk evidence distinct', () => {
 		render(
 			<Docket
