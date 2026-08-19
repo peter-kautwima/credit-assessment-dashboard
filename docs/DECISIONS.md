@@ -42,6 +42,16 @@ established convention for an inline filter.
 **Rejected: Cmd/Ctrl+K.** That is the command-palette convention, and this is a list filter, not a
 palette. Left unbound deliberately so the keymap stays coherent if a palette is ever added.
 
+## Queue controls: expose finite state, contain growing sets
+
+Search leads because locating a known business is the fastest repeated action. All, Complete and
+Pending are exposed as one-click status choices with counts: the set is small, stable and important
+enough that hiding it in a select adds work. Industry and sort remain native selects because their
+option sets are secondary and industry can grow with the docket.
+
+**Rejected: three equal dropdowns.** It gives every control the same visual weight and hides the
+Pending workload that an analyst should be able to read without opening anything.
+
 ## Virtualization: measure, then choose
 
 The thresholds are fixed before any measurement is taken: 60fps sustained, no task over 50 ms, and

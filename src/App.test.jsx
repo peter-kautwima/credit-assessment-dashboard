@@ -86,7 +86,7 @@ describe('App docket states', () => {
 		render(<App />)
 
 		expect(await screen.findByText('612')).toBeVisible()
-		await user.selectOptions(screen.getByLabelText('Status'), 'Pending')
+		await user.click(screen.getByRole('button', { name: 'Pending: 1' }))
 
 		expect(screen.getByRole('heading', { name: 'Echo Tech Solutions' })).toBeVisible()
 		expect(screen.queryByText('612')).not.toBeInTheDocument()

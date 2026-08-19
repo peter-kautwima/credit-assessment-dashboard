@@ -41,6 +41,14 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		() => [...new Set(entries.map((entry) => entry.business.industry))].sort(),
 		[entries],
 	)
+	const statusCounts = useMemo(
+		() => ({
+			All: entries.length,
+			Complete: entries.filter((entry) => entry.assessment?.status === 'Complete').length,
+			Pending: entries.filter((entry) => entry.assessment?.status === 'Pending').length,
+		}),
+		[entries],
+	)
 	const visibleEntries = useMemo(() => filterAndSortDocket(entries, filters), [entries, filters])
 	const visibleIds = useMemo(
 		() => visibleEntries.map((entry) => entry.business.id),
@@ -81,8 +89,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		return () => document.removeEventListener('keydown', focusSearch)
 	}, [])
 
-	function updateFilter(event) {
-		const { name, value } = event.target
+	function applyFilter(name, value) {
 		setFilters((current) => {
 			const nextFilters = { ...current, [name]: value }
 			const nextVisibleIds = filterAndSortDocket(entries, nextFilters).map(
@@ -91,6 +98,10 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 			onVisibleChange?.(nextVisibleIds)
 			return nextFilters
 		})
+	}
+
+	function updateFilter(event) {
+		applyFilter(event.target.name, event.target.value)
 	}
 
 	function handleSearchKeyDown(event) {
@@ -146,15 +157,25 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 					{fileCountLabel(announcedCount)}
 				</p>
 
+				<fieldset className="docket__status-filter">
+					<legend>Status</legend>
+					<div>
+						{['All', 'Complete', 'Pending'].map((status) => (
+							<button
+								key={status}
+								type="button"
+								aria-label={`${status}: ${statusCounts[status]}`}
+								aria-pressed={filters.status === status}
+								onClick={() => applyFilter('status', status)}
+							>
+								<span>{status}</span>
+								<small>{statusCounts[status]}</small>
+							</button>
+						))}
+					</div>
+				</fieldset>
+
 				<div className="docket__filters">
-					<label>
-						<span>Status</span>
-						<select id="status-filter" name="status" onChange={updateFilter}>
-							<option>All</option>
-							<option>Complete</option>
-							<option>Pending</option>
-						</select>
-					</label>
 					<label>
 						<span>Industry</span>
 						<select id="industry-filter" name="industry" onChange={updateFilter}>

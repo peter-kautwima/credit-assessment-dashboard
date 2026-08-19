@@ -90,10 +90,6 @@
 	margin-top: var(--space-4);
 }
 
-.docket__filters label:last-child {
-	grid-column: 1 / -1;
-}
-
 .docket__filters label {
 	display: grid;
 	gap: var(--space-1);
@@ -102,6 +98,57 @@
 	font-weight: 700;
 	letter-spacing: var(--tracking-label);
 	text-transform: uppercase;
+}
+
+.docket__status-filter {
+	margin: var(--space-4) 0 0;
+	padding: 0;
+	border: 0;
+}
+
+.docket__status-filter legend {
+	margin-bottom: var(--space-1);
+	color: var(--color-ink-soft);
+	font-size: var(--font-size-xs);
+	font-weight: 700;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+}
+
+.docket__status-filter > div {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.docket__status-filter button {
+	display: flex;
+	min-height: var(--control-height);
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-1);
+	padding: 0 var(--space-2);
+	border: 0.0625rem solid var(--color-rule-strong);
+	border-right: 0;
+	background: transparent;
+	color: var(--color-ink-soft);
+	font-size: var(--font-size-xs);
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.docket__status-filter button:last-child {
+	border-right: 0.0625rem solid var(--color-rule-strong);
+}
+
+.docket__status-filter button[aria-pressed="true"] {
+	background: var(--color-navy);
+	color: var(--color-sheet);
+}
+
+.docket__status-filter small {
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+	opacity: 0.75;
 }
 
 .docket__filters select {

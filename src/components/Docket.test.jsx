@@ -55,7 +55,7 @@ describe('Docket', () => {
 		const user = userEvent.setup()
 		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
 
-		await user.selectOptions(screen.getByLabelText('Status'), 'Pending')
+		await user.click(screen.getByRole('button', { name: 'Pending: 1' }))
 
 		expect(screen.getByText('1 file in view')).toBeVisible()
 		expect(screen.queryByText('Acme Traders')).not.toBeInTheDocument()
@@ -103,7 +103,7 @@ describe('Docket', () => {
 		const user = userEvent.setup()
 		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
 
-		await user.selectOptions(screen.getByLabelText('Status'), 'Complete')
+		await user.click(screen.getByRole('button', { name: 'Complete: 2' }))
 		const search = screen.getByLabelText(/Find a file/)
 		await user.type(search, 'construction')
 
