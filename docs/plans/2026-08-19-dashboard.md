@@ -29,8 +29,8 @@ loads every detail before it is requested and ignores the relational API shape.
 | Tokens and primitives | Reusable tokens and small rendered primitives | Complete |
 | Data layer | Newest assessment, lazy details, cache/retry tests | Complete |
 | Docket | Five rows, status/industry controls, sorting, keyboard selection | Complete |
-| File sheet | Score/risk, financials, categories, attention and Pending | In progress |
-| Review | Fresh reviewer findings written before fixes | Pending |
+| File sheet | Score/risk, financials, categories, attention and Pending | Complete |
+| Review | Fresh reviewer findings written before fixes | In progress |
 | Search | Discoverable field, `/`, Escape, highlighting, composed results | Pending |
 | Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | Optional |
 | Ship | README, leak grep, full verify, linear main | Pending |

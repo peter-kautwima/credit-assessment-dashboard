@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Docket } from './components/Docket'
+import { FileSheet } from './components/FileSheet'
 import { Button } from './components/ui/Button'
 import { creditApi } from './data/creditApi'
 import './App.css'
@@ -7,6 +8,7 @@ import './App.css'
 export default function App() {
 	const [docket, setDocket] = useState({ status: 'loading', entries: [], error: null })
 	const [selectedId, setSelectedId] = useState(null)
+	const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
 	const [requestKey, setRequestKey] = useState(0)
 
 	useEffect(() => {
@@ -32,6 +34,10 @@ export default function App() {
 	}, [requestKey])
 
 	const selectedEntry = docket.entries.find((entry) => entry.business.id === selectedId)
+	const selectEntry = (businessId) => {
+		setSelectedId(businessId)
+		setMobileDetailOpen(true)
+	}
 
 	return (
 		<div className="app-shell">
@@ -48,7 +54,10 @@ export default function App() {
 				<p>Current assessment docket</p>
 			</header>
 
-			<main id="workspace" className="workspace">
+			<main
+				id="workspace"
+				className={mobileDetailOpen ? 'workspace workspace--detail' : 'workspace'}
+			>
 				{docket.status === 'loading' && <DocketLoading />}
 				{docket.status === 'error' && (
 					<DocketError error={docket.error} onRetry={() => setRequestKey((key) => key + 1)} />
@@ -56,15 +65,10 @@ export default function App() {
 				{docket.status === 'success' && docket.entries.length === 0 && <DocketEmpty />}
 				{docket.status === 'success' && docket.entries.length > 0 && (
 					<>
-						<Docket entries={docket.entries} selectedId={selectedId} onSelect={setSelectedId} />
-						<section className="case-placeholder" aria-labelledby="case-title">
-							<p>Selected assessment</p>
-							<h1 id="case-title">{selectedEntry?.business.name}</h1>
-							<p>
-								The evidence file will load here on demand. Choose another business from the docket
-								to move through the queue.
-							</p>
-						</section>
+						<Docket entries={docket.entries} selectedId={selectedId} onSelect={selectEntry} />
+						{selectedEntry && (
+							<FileSheet entry={selectedEntry} onBack={() => setMobileDetailOpen(false)} />
+						)}
 					</>
 				)}
 			</main>

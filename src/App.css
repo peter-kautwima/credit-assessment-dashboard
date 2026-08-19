@@ -58,14 +58,6 @@
 	background: var(--color-paper);
 }
 
-.case-placeholder {
-	align-self: center;
-	max-width: 40rem;
-	margin: auto;
-	padding: var(--space-7);
-}
-
-.case-placeholder > p:first-child,
 .state-page > p:first-child {
 	margin: 0 0 var(--space-2);
 	color: var(--color-info);
@@ -75,7 +67,6 @@
 	text-transform: uppercase;
 }
 
-.case-placeholder h1,
 .state-page h1 {
 	margin: 0;
 	font-size: var(--font-size-xl);
@@ -83,7 +74,6 @@
 	letter-spacing: -0.025em;
 }
 
-.case-placeholder > p:last-child,
 .state-page > p:not(:first-child) {
 	max-width: 62ch;
 	margin: var(--space-4) 0 0;
@@ -151,7 +141,8 @@
 		border-right: 0;
 	}
 
-	.case-placeholder {
+	.workspace:not(.workspace--detail) .file-sheet,
+	.workspace--detail .docket {
 		display: none;
 	}
 }
