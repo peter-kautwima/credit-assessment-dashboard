@@ -98,7 +98,14 @@ export function filterAndSortDocket(
 	return filtered.toSorted(sorters[sort] ?? sorters.name)
 }
 
-export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportSummaries = {} }) {
+export function Docket({
+	entries,
+	selectedId,
+	restoreFocusId,
+	onSelect,
+	onVisibleChange,
+	reportSummaries = {},
+}) {
 	const [filters, setFilters] = useState(initialFilters)
 	const [announcedCount, setAnnouncedCount] = useState(entries.length)
 	const [pendingFocusIndex, setPendingFocusIndex] = useState(null)
@@ -162,6 +169,22 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		row.focus()
 		setPendingFocusIndex(null)
 	}, [pendingFocusIndex, renderedIndexKey])
+
+	useEffect(() => {
+		if (restoreFocusId == null) return
+		const index = visibleEntries.findIndex((entry) => entry.business.id === restoreFocusId)
+		if (index < 0) return
+		const frame = requestAnimationFrame(() => {
+			if (shouldVirtualize) {
+				rowVirtualizer.measure()
+				rowVirtualizer.scrollToIndex(index, { align: 'center' })
+				setPendingFocusIndex(index)
+				return
+			}
+			listRef.current?.querySelector(`[data-row][data-index="${index}"]`)?.focus()
+		})
+		return () => cancelAnimationFrame(frame)
+	}, [restoreFocusId, rowVirtualizer, shouldVirtualize, visibleEntries])
 
 	useEffect(() => {
 		const timeout = window.setTimeout(() => setAnnouncedCount(visibleEntries.length), 500)

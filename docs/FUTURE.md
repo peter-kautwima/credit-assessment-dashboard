@@ -3,9 +3,9 @@
 The next work should deepen operational reliability rather than add decorative dashboard widgets.
 Priority order matters.
 
-1. **Browser workflow coverage.** Add Playwright tests for search/filter composition, virtualized
-   keyboard traversal, Pending and High-risk files, API recovery, narrow-screen docket/detail
-   navigation and print output.
+1. **Expand browser workflow coverage.** The baseline now covers High-risk triage and mobile focus
+   restoration. Add filter composition, virtualized keyboard boundaries, Pending files, API
+   recovery and print output.
 2. **A production queue contract.** Replace the mock list join with a server-owned queue-summary
    endpoint supporting search, sort, filters and cursor pagination. Include risk summary fields so
    global risk filtering is complete without fetching every report.

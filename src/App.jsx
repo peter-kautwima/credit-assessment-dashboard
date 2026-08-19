@@ -69,12 +69,6 @@ export default function App() {
 		if (mobileDetailOpen) detailHeadingRef.current?.focus()
 	}, [mobileDetailOpen])
 
-	useEffect(() => {
-		if (mobileDetailOpen || restoreFocusId == null) return
-		document.querySelector(`[data-business-id="${restoreFocusId}"]`)?.focus()
-		setRestoreFocusId(null)
-	}, [mobileDetailOpen, restoreFocusId])
-
 	return (
 		<div className="app-shell">
 			<header className="app-header">
@@ -104,6 +98,7 @@ export default function App() {
 						<Docket
 							entries={docket.entries}
 							selectedId={selectedId}
+							restoreFocusId={restoreFocusId}
 							onSelect={selectEntry}
 							onVisibleChange={handleVisibleChange}
 							reportSummaries={reportSummaries}

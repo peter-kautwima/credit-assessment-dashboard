@@ -10,6 +10,7 @@
 		"fixture:scale": "node scripts/generate-scale-fixture.mjs 2000",
 		"check": "biome check .",
 		"test": "vitest",
+		"test:e2e": "playwright test",
 		"verify": "biome check . && vitest run && vite build"
 	},
 	"dependencies": {
@@ -19,6 +20,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9",
+		"@playwright/test": "^1.62.1",
 		"@testing-library/jest-dom": "^7.0.1",
 		"@testing-library/react": "^16.3.2",
 		"@testing-library/user-event": "^14.6.5",

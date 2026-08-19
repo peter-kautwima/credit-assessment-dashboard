@@ -45,9 +45,19 @@ on reports opened and cached during the current session.
 npm run verify
 ```
 
-This runs Biome, 32 Vitest tests and the production build. Tests cover the API cache and
+This runs Biome, 33 Vitest tests and the production build. Tests cover the API cache and
 list-then-detail shape, all async states, Pending nulls, partial evidence, composed search/filter
 behavior, keyboard shortcuts and the 2,000-file window.
+
+With the API and Vite servers already running, two browser workflows use the installed Chrome:
+
+```bash
+npm run test:e2e
+```
+
+They cover desktop High-risk triage and narrow-screen docket/detail focus restoration. Playwright
+does not own the servers in this repository, so the command cannot disrupt a running development
+session.
 
 The shipped `data.json` remains the runtime default and is unchanged. `data-2000.json` is a
 deterministic scale fixture that preserves every shipped row and extends the same schema:

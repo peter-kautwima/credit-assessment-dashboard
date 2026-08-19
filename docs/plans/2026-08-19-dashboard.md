@@ -34,6 +34,7 @@ loads every detail before it is requested and ignores the relational API shape.
 | Search | Discoverable field, `/`, Escape, highlighting, composed results | Complete |
 | Scale | 2,000 logical files, fewer than 30 rendered rows at 720px | Complete |
 | Ship | README, leak grep, full verify, linear main | Complete |
+| Browser workflows | Desktop risk triage and mobile focus restoration | Complete |
 
 ## Interaction contract
 

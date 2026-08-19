@@ -35,6 +35,8 @@
 		"ignore": [
 			"dist",
 			"node_modules",
+			"playwright-report",
+			"test-results",
 			"data.json",
 			"data-*.json",
 			".agents",

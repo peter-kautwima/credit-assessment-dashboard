@@ -225,3 +225,15 @@ action rather than forcing analysts to reverse several filters manually.
 the control deck, duplicates navigation already handled by the virtual window, and splits composed
 search results into arbitrary pages. A production server may later use cursor pagination behind the
 same continuous queue, but that is an API concern rather than this layout correction.
+
+## Browser verification: use the running system
+
+Two Playwright workflows exercise the user-owned Vite and API processes: desktop High-risk triage
+and mobile docket/detail focus restoration. The latter exposed a defect unit tests missed: a
+virtualized docket hidden during mobile detail could retain stale measurements, reopen with a blank
+gap and leave the selected row unavailable for focus. Returning now remeasures the window, brings
+the selected business back into it and restores focus.
+
+**Rejected: letting Playwright start and stop servers.** This repository's working contract keeps
+those processes in the analyst's terminals. The E2E command therefore fails plainly if they are not
+available instead of replacing or interrupting them.
