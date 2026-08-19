@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { StatusBadge } from './ui/StatusBadge'
 import './Docket.css'
 
@@ -19,17 +19,33 @@ export function filterAndSortDocket(entries, { status, industry, sort }) {
 		.toSorted(sorters[sort] ?? sorters.name)
 }
 
-export function Docket({ entries, selectedId, onSelect }) {
+export function Docket({ entries, selectedId, onSelect, onVisibleChange }) {
 	const [filters, setFilters] = useState({ status: 'All', industry: 'All', sort: 'name' })
 
 	const industries = useMemo(
 		() => [...new Set(entries.map((entry) => entry.business.industry))].sort(),
 		[entries],
 	)
-	const visibleEntries = filterAndSortDocket(entries, filters)
+	const visibleEntries = useMemo(() => filterAndSortDocket(entries, filters), [entries, filters])
+	const visibleIds = useMemo(
+		() => visibleEntries.map((entry) => entry.business.id),
+		[visibleEntries],
+	)
+
+	useEffect(() => {
+		onVisibleChange?.(visibleIds)
+	}, [onVisibleChange, visibleIds])
 
 	function updateFilter(event) {
-		setFilters((current) => ({ ...current, [event.target.name]: event.target.value }))
+		const { name, value } = event.target
+		setFilters((current) => {
+			const nextFilters = { ...current, [name]: value }
+			const nextVisibleIds = filterAndSortDocket(entries, nextFilters).map(
+				(entry) => entry.business.id,
+			)
+			onVisibleChange?.(nextVisibleIds)
+			return nextFilters
+		})
 	}
 
 	function handleRowKeyDown(event) {
@@ -95,6 +111,7 @@ export function Docket({ entries, selectedId, onSelect }) {
 								<button
 									type="button"
 									data-row
+									data-business-id={business.id}
 									className="docket-row"
 									aria-current={isSelected ? 'true' : undefined}
 									onClick={() => onSelect(business.id)}

@@ -95,4 +95,37 @@ describe('FileSheet', () => {
 		expect(screen.getByText('612')).toBeVisible()
 		expect(screen.getByText('Payment History')).toBeVisible()
 	})
+
+	it('does not turn a missing thin-file value into an established-file claim', async () => {
+		creditApi.loadCreditReport.mockResolvedValue({
+			score: 612,
+			riskBand: 'Medium',
+			isThinFile: null,
+		})
+		creditApi.loadBankStatement.mockResolvedValue(null)
+		creditApi.loadScoreItems.mockResolvedValue([])
+
+		render(<FileSheet entry={completeEntry} onBack={() => {}} />)
+
+		expect(await screen.findByText('Credit-file status not reported')).toBeVisible()
+		expect(screen.queryByText('Established file')).not.toBeInTheDocument()
+	})
+
+	it('removes resolved evidence at the assessment boundary', async () => {
+		creditApi.loadCreditReport.mockResolvedValueOnce({
+			score: 612,
+			riskBand: 'Medium',
+			isThinFile: false,
+		})
+		creditApi.loadBankStatement.mockResolvedValue(null)
+		creditApi.loadScoreItems.mockResolvedValue([])
+		const { rerender } = render(<FileSheet entry={completeEntry} onBack={() => {}} />)
+
+		expect(await screen.findByText('612')).toBeVisible()
+		creditApi.loadCreditReport.mockReturnValueOnce(new Promise(() => {}))
+		rerender(<FileSheet entry={pendingEntry} onBack={() => {}} />)
+
+		expect(screen.queryByText('612')).not.toBeInTheDocument()
+		expect(screen.getByText('Loading credit report…')).toBeVisible()
+	})
 })

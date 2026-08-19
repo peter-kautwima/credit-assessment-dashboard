@@ -6,7 +6,14 @@ import './FileSheet.css'
 const money = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })
 const number = new Intl.NumberFormat('en-ZA', { maximumFractionDigits: 1 })
 
-export function FileSheet({ entry, onBack }) {
+export function FileSheet({ entry, onBack, headingRef }) {
+	const boundaryKey = entry.assessment?.id ?? `business-${entry.business.id}`
+	return (
+		<FileSheetContent key={boundaryKey} entry={entry} onBack={onBack} headingRef={headingRef} />
+	)
+}
+
+function FileSheetContent({ entry, onBack, headingRef }) {
 	const { business, assessment } = entry
 	const details = useAssessmentDetails(assessment?.id)
 	const report = details.report.data
@@ -19,7 +26,9 @@ export function FileSheet({ entry, onBack }) {
 					Back to docket
 				</Button>
 				<p>Assessment unavailable</p>
-				<h1>{business.name}</h1>
+				<h1 ref={headingRef} tabIndex={-1}>
+					{business.name}
+				</h1>
 				<p>This business has no assessment on file yet.</p>
 			</section>
 		)
@@ -44,7 +53,9 @@ export function FileSheet({ entry, onBack }) {
 			<header className="file-header">
 				<div>
 					<p>{business.registrationNumber}</p>
-					<h1 id="file-title">{business.name}</h1>
+					<h1 id="file-title" ref={headingRef} tabIndex={-1}>
+						{business.name}
+					</h1>
 					<p>{business.industry}</p>
 				</div>
 				<div className="file-header__status">
@@ -165,7 +176,13 @@ function CreditOverview({ report }) {
 				</div>
 				<div>
 					<dt>Credit file</dt>
-					<dd>{report.isThinFile ? 'Thin file' : 'Established file'}</dd>
+					<dd>
+						{report.isThinFile == null
+							? 'Credit-file status not reported'
+							: report.isThinFile
+								? 'Thin file'
+								: 'Established file'}
+					</dd>
 				</div>
 			</dl>
 		</div>

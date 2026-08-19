@@ -30,8 +30,8 @@ loads every detail before it is requested and ignores the relational API shape.
 | Data layer | Newest assessment, lazy details, cache/retry tests | Complete |
 | Docket | Five rows, status/industry controls, sorting, keyboard selection | Complete |
 | File sheet | Score/risk, financials, categories, attention and Pending | Complete |
-| Review | Fresh reviewer findings written before fixes | In progress |
-| Search | Discoverable field, `/`, Escape, highlighting, composed results | Pending |
+| Review | Fresh reviewer findings written before fixes | Complete |
+| Search | Discoverable field, `/`, Escape, highlighting, composed results | In progress |
 | Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | Optional |
 | Ship | README, leak grep, full verify, linear main | Pending |
 

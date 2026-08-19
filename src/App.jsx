@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Docket } from './components/Docket'
 import { FileSheet } from './components/FileSheet'
 import { Button } from './components/ui/Button'
 import { creditApi } from './data/creditApi'
+import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 
 export default function App() {
 	const [docket, setDocket] = useState({ status: 'loading', entries: [], error: null })
 	const [selectedId, setSelectedId] = useState(null)
 	const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
+	const [restoreFocusId, setRestoreFocusId] = useState(null)
 	const [requestKey, setRequestKey] = useState(0)
+	const detailHeadingRef = useRef(null)
+	const isMobile = useMediaQuery('(max-width: 52rem)')
 
 	useEffect(() => {
 		void requestKey
@@ -37,7 +41,28 @@ export default function App() {
 	const selectEntry = (businessId) => {
 		setSelectedId(businessId)
 		setMobileDetailOpen(true)
+		setRestoreFocusId(null)
 	}
+	const handleVisibleChange = useCallback((visibleIds) => {
+		setSelectedId((current) => {
+			if (visibleIds.length === 0) return null
+			return visibleIds.includes(current) ? current : visibleIds[0]
+		})
+	}, [])
+	const returnToDocket = () => {
+		setRestoreFocusId(selectedId)
+		setMobileDetailOpen(false)
+	}
+
+	useEffect(() => {
+		if (mobileDetailOpen) detailHeadingRef.current?.focus()
+	}, [mobileDetailOpen])
+
+	useEffect(() => {
+		if (mobileDetailOpen || restoreFocusId == null) return
+		document.querySelector(`[data-business-id="${restoreFocusId}"]`)?.focus()
+		setRestoreFocusId(null)
+	}, [mobileDetailOpen, restoreFocusId])
 
 	return (
 		<div className="app-shell">
@@ -65,9 +90,18 @@ export default function App() {
 				{docket.status === 'success' && docket.entries.length === 0 && <DocketEmpty />}
 				{docket.status === 'success' && docket.entries.length > 0 && (
 					<>
-						<Docket entries={docket.entries} selectedId={selectedId} onSelect={selectEntry} />
-						{selectedEntry && (
-							<FileSheet entry={selectedEntry} onBack={() => setMobileDetailOpen(false)} />
+						<Docket
+							entries={docket.entries}
+							selectedId={selectedId}
+							onSelect={selectEntry}
+							onVisibleChange={handleVisibleChange}
+						/>
+						{selectedEntry && (!isMobile || mobileDetailOpen) && (
+							<FileSheet
+								entry={selectedEntry}
+								onBack={returnToDocket}
+								headingRef={detailHeadingRef}
+							/>
 						)}
 					</>
 				)}
