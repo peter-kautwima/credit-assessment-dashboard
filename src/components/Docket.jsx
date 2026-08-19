@@ -1,3 +1,4 @@
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StatusBadge } from './ui/StatusBadge'
 import './Docket.css'
@@ -17,6 +18,19 @@ const sorters = {
 	reference: (left, right) =>
 		(left.assessment?.id ?? Number.POSITIVE_INFINITY) -
 		(right.assessment?.id ?? Number.POSITIVE_INFINITY),
+}
+
+function observeDocketRect(instance, callback) {
+	const element = instance.scrollElement
+	if (!element) return undefined
+	const report = () => callback({ width: element.clientWidth, height: element.clientHeight })
+	const frame = requestAnimationFrame(report)
+	const observer = new ResizeObserver(report)
+	observer.observe(element)
+	return () => {
+		cancelAnimationFrame(frame)
+		observer.disconnect()
+	}
 }
 
 export function filterAndSortDocket(
@@ -85,7 +99,9 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		sort: 'name',
 	})
 	const [announcedCount, setAnnouncedCount] = useState(entries.length)
+	const [pendingFocusIndex, setPendingFocusIndex] = useState(null)
 	const searchRef = useRef(null)
+	const listRef = useRef(null)
 	const restoreListFocusRef = useRef(false)
 
 	const industries = useMemo(
@@ -104,10 +120,26 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		() => filterAndSortDocket(entries, filters, reportSummaries),
 		[entries, filters, reportSummaries],
 	)
+	const scrollResetKey = `${filters.query}|${filters.status}|${filters.industry}|${filters.risk}|${filters.sort}`
 	const visibleIds = useMemo(
 		() => visibleEntries.map((entry) => entry.business.id),
 		[visibleEntries],
 	)
+	const shouldVirtualize = visibleEntries.length > 50
+	const rowVirtualizer = useVirtualizer({
+		count: shouldVirtualize ? visibleEntries.length : 0,
+		enabled: shouldVirtualize,
+		getScrollElement: () => listRef.current,
+		estimateSize: () => 142,
+		getItemKey: (index) => visibleEntries[index].business.id,
+		overscan: 6,
+		initialRect: { width: 432, height: 720 },
+		observeElementRect: observeDocketRect,
+	})
+	const renderedRows = shouldVirtualize
+		? rowVirtualizer.getVirtualItems()
+		: visibleEntries.map((entry, index) => ({ index, key: entry.business.id, start: 0 }))
+	const renderedIndexKey = renderedRows.map((row) => row.index).join(',')
 
 	useEffect(() => {
 		onVisibleChange?.(visibleIds)
@@ -121,9 +153,25 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 	}, [selectedId, visibleIds])
 
 	useEffect(() => {
+		void renderedIndexKey
+		if (pendingFocusIndex == null) return
+		const row = listRef.current?.querySelector(`[data-row][data-index="${pendingFocusIndex}"]`)
+		if (!row) return
+		row.focus()
+		setPendingFocusIndex(null)
+	}, [pendingFocusIndex, renderedIndexKey])
+
+	useEffect(() => {
 		const timeout = window.setTimeout(() => setAnnouncedCount(visibleEntries.length), 500)
 		return () => window.clearTimeout(timeout)
 	}, [visibleEntries.length])
+
+	useEffect(() => {
+		void scrollResetKey
+		if (!shouldVirtualize || visibleEntries.length === 0) return
+		const frame = requestAnimationFrame(() => rowVirtualizer.scrollToIndex(0))
+		return () => cancelAnimationFrame(frame)
+	}, [rowVirtualizer, scrollResetKey, shouldVirtualize, visibleEntries.length])
 
 	useEffect(() => {
 		function focusSearch(event) {
@@ -172,18 +220,27 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 	function handleRowKeyDown(event) {
 		if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
 		event.preventDefault()
-		const rows = [...event.currentTarget.closest('ul').querySelectorAll('[data-row]')]
-		const currentIndex = rows.indexOf(event.currentTarget)
+		const currentIndex = Number(event.currentTarget.dataset.index)
 		const nextIndex =
 			event.key === 'Home'
 				? 0
 				: event.key === 'End'
-					? rows.length - 1
+					? visibleEntries.length - 1
 					: Math.min(
-							rows.length - 1,
+							visibleEntries.length - 1,
 							Math.max(0, currentIndex + (event.key === 'ArrowDown' ? 1 : -1)),
 						)
-		rows[nextIndex]?.focus()
+		if (!shouldVirtualize) {
+			listRef.current?.querySelector(`[data-row][data-index="${nextIndex}"]`)?.focus()
+			return
+		}
+		const nextRow = listRef.current?.querySelector(`[data-row][data-index="${nextIndex}"]`)
+		if (nextRow) {
+			nextRow.focus()
+			return
+		}
+		setPendingFocusIndex(nextIndex)
+		rowVirtualizer.scrollToIndex(nextIndex, { align: 'center' })
 	}
 
 	return (
@@ -271,65 +328,86 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 				</div>
 			</div>
 
-			<ul className="docket__list" aria-label="Businesses">
+			<div ref={listRef} className="docket__list">
 				{visibleEntries.length ? (
-					visibleEntries.map(({ business, assessment }) => {
-						const isSelected = business.id === selectedId
-						const reportSummary = reportSummaries[assessment?.id]
-						return (
-							<li key={business.id}>
-								<button
-									type="button"
-									data-row
-									data-business-id={business.id}
-									className="docket-row"
-									aria-current={isSelected ? 'true' : undefined}
-									onClick={() => onSelect(business.id)}
-									onKeyDown={handleRowKeyDown}
+					<ul
+						aria-label="Businesses"
+						className={shouldVirtualize ? 'docket__virtual-list' : undefined}
+						style={shouldVirtualize ? { height: `${rowVirtualizer.getTotalSize()}px` } : undefined}
+					>
+						{renderedRows.map((virtualRow) => {
+							const { business, assessment } = visibleEntries[virtualRow.index]
+							const isSelected = business.id === selectedId
+							const reportSummary = reportSummaries[assessment?.id]
+							return (
+								<li
+									key={virtualRow.key}
+									ref={shouldVirtualize ? rowVirtualizer.measureElement : undefined}
+									data-index={virtualRow.index}
+									aria-posinset={virtualRow.index + 1}
+									aria-setsize={visibleEntries.length}
+									style={
+										shouldVirtualize
+											? { transform: `translateY(${virtualRow.start}px)` }
+											: undefined
+									}
 								>
-									<span className="docket-row__topline">
-										<strong>{highlightMatch(business.name, filters.query)}</strong>
-										{assessment ? (
-											<StatusBadge status={assessment.status}>{assessment.status}</StatusBadge>
-										) : (
-											<StatusBadge>Not assessed</StatusBadge>
+									<button
+										type="button"
+										data-row
+										data-index={virtualRow.index}
+										data-business-id={business.id}
+										className="docket-row"
+										aria-current={isSelected ? 'true' : undefined}
+										onClick={() => onSelect(business.id)}
+										onKeyDown={handleRowKeyDown}
+									>
+										<span className="docket-row__topline">
+											<strong>{highlightMatch(business.name, filters.query)}</strong>
+											{assessment ? (
+												<StatusBadge status={assessment.status}>{assessment.status}</StatusBadge>
+											) : (
+												<StatusBadge>Not assessed</StatusBadge>
+											)}
+										</span>
+										<span className="docket-row__meta">
+											<span>{highlightMatch(business.industry, filters.query)}</span>
+											<span>{highlightMatch(business.registrationNumber, filters.query)}</span>
+										</span>
+										{assessment && (
+											<span className="docket-row__date">
+												<span>File {assessment.id}</span>
+												<span>
+													Assessed {highlightMatch(assessment.createdDate, filters.query)}
+												</span>
+											</span>
 										)}
-									</span>
-									<span className="docket-row__meta">
-										<span>{highlightMatch(business.industry, filters.query)}</span>
-										<span>{highlightMatch(business.registrationNumber, filters.query)}</span>
-									</span>
-									{assessment && (
-										<span className="docket-row__date">
-											<span>File {assessment.id}</span>
-											<span>Assessed {highlightMatch(assessment.createdDate, filters.query)}</span>
-										</span>
-									)}
-									{reportSummary?.riskBand && (
-										<span
-											className={`docket-row__risk${
-												reportSummary.riskBand === 'High' ? ' docket-row__risk--high' : ''
-											}`}
-										>
-											<strong>{reportSummary.riskBand} risk</strong>
-											{reportSummary.score != null && <span>Score {reportSummary.score}</span>}
-										</span>
-									)}
-									{assessment?.status === 'Complete' && !reportSummary && (
-										<span className="docket-row__unreviewed">Risk available on review</span>
-									)}
-								</button>
-							</li>
-						)
-					})
+										{reportSummary?.riskBand && (
+											<span
+												className={`docket-row__risk${
+													reportSummary.riskBand === 'High' ? ' docket-row__risk--high' : ''
+												}`}
+											>
+												<strong>{reportSummary.riskBand} risk</strong>
+												{reportSummary.score != null && <span>Score {reportSummary.score}</span>}
+											</span>
+										)}
+										{assessment?.status === 'Complete' && !reportSummary && (
+											<span className="docket-row__unreviewed">Risk available on review</span>
+										)}
+									</button>
+								</li>
+							)
+						})}
+					</ul>
 				) : (
-					<li className="docket__empty">
+					<p className="docket__empty">
 						{filters.query.trim()
 							? `No file matches '${filters.query.trim()}' by name, reference or industry.`
 							: 'No files match these filters.'}
-					</li>
+					</p>
 				)}
-			</ul>
+			</div>
 		</aside>
 	)
 }

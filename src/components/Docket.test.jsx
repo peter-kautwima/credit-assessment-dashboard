@@ -1,5 +1,6 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import scaleFixture from '../../data-2000.json'
 import { Docket, filterAndSortDocket } from './Docket'
 
 const entries = [
@@ -34,7 +35,7 @@ const entries = [
 
 describe('Docket', () => {
 	beforeEach(() => {
-		vi.stubGlobal('requestAnimationFrame', (callback) => callback())
+		vi.stubGlobal('requestAnimationFrame', (callback) => window.setTimeout(callback, 0))
 	})
 
 	afterEach(() => {
@@ -96,7 +97,7 @@ describe('Docket', () => {
 
 		await user.keyboard('{ArrowDown}')
 
-		expect(rows[1]).toHaveFocus()
+		await waitFor(() => expect(rows[1]).toHaveFocus())
 	})
 
 	it('searches name, registration and industry within the active filters', async () => {
@@ -138,7 +139,7 @@ describe('Docket', () => {
 		await user.keyboard('{Escape}')
 
 		expect(search).toHaveValue('')
-		expect(screen.getByRole('button', { name: /Acme Traders/ })).toHaveFocus()
+		await waitFor(() => expect(screen.getByRole('button', { name: /Acme Traders/ })).toHaveFocus())
 	})
 
 	it('announces the composed result count after search settles', () => {
@@ -194,5 +195,23 @@ describe('Docket', () => {
 		await user.selectOptions(screen.getByLabelText('Reviewed risk'), 'All')
 		await user.selectOptions(screen.getByLabelText('Sort by'), 'risk')
 		expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Bright Construction')
+	})
+
+	it('windows the 2000-file fixture with accessible set positions', async () => {
+		const assessments = new Map(
+			scaleFixture.assessments.map((assessment) => [assessment.businessId, assessment]),
+		)
+		const scaleEntries = scaleFixture.businesses.map((business) => ({
+			business,
+			assessment: assessments.get(business.id),
+		}))
+		render(<Docket entries={scaleEntries} selectedId={1} onSelect={vi.fn()} />)
+		const list = screen.getByRole('list', { name: 'Businesses' })
+
+		await waitFor(() => expect(within(list).getAllByRole('button').length).toBeGreaterThan(0))
+		const renderedRows = within(list).getAllByRole('button')
+		expect(renderedRows.length).toBeLessThan(30)
+		expect(list.querySelector('[aria-setsize="2000"]')).toBeInTheDocument()
+		expect(renderedRows[0].closest('li')).toHaveAttribute('aria-posinset', '1')
 	})
 })

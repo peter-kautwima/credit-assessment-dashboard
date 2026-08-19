@@ -62,22 +62,21 @@ per business.
 **Rejected: three equal dropdowns.** It gives every control the same visual weight and hides the
 Pending workload that an analyst should be able to read without opening anything.
 
-## Virtualization: measure, then choose
+## Virtualization: window only when scale earns it
 
-The thresholds are fixed before any measurement is taken: 60fps sustained, no task over 50 ms, and
-typing-to-repaint under 100 ms. Passing all three selects `content-visibility: auto` with
-`contain-intrinsic-size` from a measured row height. Failing any selects TanStack Virtual with
-fixed row heights, recording which number failed. Measurement is mechanical — `PerformanceObserver`
-on `longtask` entries and `performance.measure` around keypress-to-paint — and it runs again after
-the fix, so the figures exist before and after.
+The shipped five-file docket stays a plain list. Above 50 composed results, TanStack Virtual owns
+the scroll window and measures rows because reviewed files can gain an additional risk line. The
+2,000-file fixture renders fewer than 30 rows in the 720px test viewport while preserving the full
+logical size through `aria-setsize` and `aria-posinset`. Rows are keyed by business id, and every
+filter or sort change resets the scroll origin so measured positions cannot leak into a new set.
 
-Setting the bar in advance stops a marginal result being rationalised afterwards. Measuring
-mechanically stops it being judged by eye by the person who wants it to pass.
+This adds 7.18 kB gzip to the production JavaScript bundle (51.69 kB before, 58.87 kB after). That
+cost is earned by removing roughly 1,970 interactive rows at the scale fixture while leaving the
+default five-row path unchanged.
 
-`content-visibility` removes layout and paint cost but not DOM
-construction — fine at two thousand rows, wrong at fifty thousand. And if it wins, rows must be
-`React.memo`'d, because it does nothing about React reconciliation and `useDeferredValue` alone
-would buy nothing.
+`content-visibility: auto` was considered because it can reduce off-screen layout and paint work.
+It was rejected because it still constructs and reconciles all 2,000 buttons, which is the cost the
+scale exercise is intended to remove.
 
 **Rejected: hand-rolling a virtualizer.** Forty lines whose edge cases you own is not cheaper than
 a dependency that has already found them.

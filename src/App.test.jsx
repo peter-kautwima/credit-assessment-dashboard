@@ -45,7 +45,7 @@ describe('App docket states', () => {
 		)
 		creditApi.loadBankStatement.mockResolvedValue(null)
 		creditApi.loadScoreItems.mockResolvedValue([])
-		vi.stubGlobal('requestAnimationFrame', (callback) => callback())
+		vi.stubGlobal('requestAnimationFrame', (callback) => window.setTimeout(callback, 0))
 		vi.stubGlobal('matchMedia', undefined)
 	})
 
