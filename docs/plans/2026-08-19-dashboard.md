@@ -28,8 +28,8 @@ loads every detail before it is requested and ignores the relational API shape.
 | Context and toolchain | Original brief hash preserved; `npm run verify` passes | Complete |
 | Tokens and primitives | Reusable tokens and small rendered primitives | Complete |
 | Data layer | Newest assessment, lazy details, cache/retry tests | Complete |
-| Docket | Five rows, status/industry controls, sorting, keyboard selection | In progress |
-| File sheet | Score/risk, financials, categories, attention and Pending | Pending |
+| Docket | Five rows, status/industry controls, sorting, keyboard selection | Complete |
+| File sheet | Score/risk, financials, categories, attention and Pending | In progress |
 | Review | Fresh reviewer findings written before fixes | Pending |
 | Search | Discoverable field, `/`, Escape, highlighting, composed results | Pending |
 | Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | Optional |
