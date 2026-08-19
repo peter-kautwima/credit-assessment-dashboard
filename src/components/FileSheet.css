@@ -11,31 +11,12 @@
 	z-index: 2;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-end;
 	gap: var(--space-4);
 	padding: var(--space-3) var(--space-6);
 	border-bottom: 0.0625rem solid var(--color-rule);
 	background: color-mix(in srgb, var(--color-paper) 94%, transparent);
 	backdrop-filter: blur(0.5rem);
-}
-
-.file-sheet__toolbar nav {
-	display: flex;
-	align-items: center;
-	gap: var(--space-5);
-}
-
-.file-sheet__toolbar a {
-	color: var(--color-ink-soft);
-	font-size: var(--font-size-sm);
-	font-weight: 600;
-	text-decoration-color: transparent;
-	text-underline-offset: var(--space-2);
-}
-
-.file-sheet__toolbar a:hover {
-	color: var(--color-navy);
-	text-decoration-color: currentColor;
 }
 
 .file-sheet__back {
@@ -54,7 +35,7 @@
 	align-items: flex-start;
 	justify-content: space-between;
 	gap: var(--space-6);
-	padding: var(--space-7) 0 var(--space-6);
+	padding: var(--space-6) 0 var(--space-5);
 	border-bottom: 0.0625rem solid var(--color-rule-strong);
 }
 
@@ -102,8 +83,19 @@
 
 .file-section {
 	scroll-margin-top: 5rem;
-	padding: var(--space-7) 0;
+	padding: var(--space-6) 0;
 	border-bottom: 0.0625rem solid var(--color-rule);
+}
+
+.evidence-band {
+	display: grid;
+	width: min(100% - 2 * var(--space-6), 62rem);
+	margin-inline: auto;
+}
+
+.evidence-band .file-section {
+	width: auto;
+	margin: 0;
 }
 
 .section-heading {
@@ -355,14 +347,18 @@
 }
 
 @media (max-width: 62rem) {
-	.file-sheet__toolbar nav {
-		display: none;
-	}
-
 	.file-header,
 	.attention-note,
-	.file-section {
+	.file-section,
+	.evidence-band {
 		width: min(100% - 2 * var(--space-5), 62rem);
+	}
+}
+
+@media (min-width: 72rem) {
+	.evidence-band {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-7);
 	}
 }
 
@@ -372,13 +368,19 @@
 	}
 
 	.file-sheet__toolbar {
+		justify-content: space-between;
 		padding-inline: var(--space-4);
 	}
 
 	.file-header,
 	.attention-note,
-	.file-section {
+	.file-section,
+	.evidence-band {
 		width: min(100% - 2 * var(--space-4), 42rem);
+	}
+
+	.evidence-band .file-section {
+		width: auto;
 	}
 
 	.file-header {
@@ -427,6 +429,11 @@
 		max-height: none;
 		overflow: visible;
 		background: var(--color-sheet);
+	}
+
+	.evidence-band {
+		display: block;
+		width: min(100% - 2 * var(--space-6), 62rem);
 	}
 
 	.file-section {

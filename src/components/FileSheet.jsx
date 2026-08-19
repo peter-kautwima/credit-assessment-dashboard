@@ -40,11 +40,6 @@ function FileSheetContent({ entry, onBack, headingRef }) {
 				<Button variant="secondary" className="file-sheet__back" onClick={onBack}>
 					Back to docket
 				</Button>
-				<nav aria-label="Assessment sections">
-					<a href="#overview">Overview</a>
-					<a href="#financials">Financials</a>
-					<a href="#score-breakdown">Score breakdown</a>
-				</nav>
 				<Button variant="secondary" onClick={() => window.print()}>
 					Print file
 				</Button>
@@ -85,29 +80,31 @@ function FileSheetContent({ entry, onBack, headingRef }) {
 				</Resource>
 			</section>
 
-			<section id="financials" className="file-section" aria-labelledby="financials-title">
-				<div className="section-heading">
-					<h2 id="financials-title">Financial picture</h2>
-					<p>Computed from the analysed bank-statement period</p>
-				</div>
-				<Resource resource={details.statement} label="bank statement">
-					{(statement) => <FinancialPicture statement={statement} />}
-				</Resource>
-			</section>
+			<div className="evidence-band">
+				<section id="financials" className="file-section" aria-labelledby="financials-title">
+					<div className="section-heading">
+						<h2 id="financials-title">Financial picture</h2>
+						<p>Computed from the analysed bank-statement period</p>
+					</div>
+					<Resource resource={details.statement} label="bank statement">
+						{(statement) => <FinancialPicture statement={statement} />}
+					</Resource>
+				</section>
 
-			<section
-				id="score-breakdown"
-				className="file-section"
-				aria-labelledby="score-breakdown-title"
-			>
-				<div className="section-heading">
-					<h2 id="score-breakdown-title">Score breakdown</h2>
-					<p>Reported score items by category</p>
-				</div>
-				<Resource resource={details.scoreItems} label="score breakdown" emptyArray>
-					{(items) => <ScoreBreakdown items={items} />}
-				</Resource>
-			</section>
+				<section
+					id="score-breakdown"
+					className="file-section"
+					aria-labelledby="score-breakdown-title"
+				>
+					<div className="section-heading">
+						<h2 id="score-breakdown-title">Score breakdown</h2>
+						<p>Reported score items by category</p>
+					</div>
+					<Resource resource={details.scoreItems} label="score breakdown" emptyArray>
+						{(items) => <ScoreBreakdown items={items} />}
+					</Resource>
+				</section>
+			</div>
 		</article>
 	)
 }

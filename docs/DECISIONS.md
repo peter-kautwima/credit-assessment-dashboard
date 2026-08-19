@@ -124,9 +124,10 @@ bundler — buying the appearance of having changed nothing at the cost of a cur
 ## Workspace: persistent docket, continuous case file
 
 Desktop keeps a searchable docket beside one continuous assessment file. Status and industry
-controls narrow the docket; anchored sections keep overview, financials and score breakdown in one
-reading context. Mobile turns the same structure into docket-then-detail navigation and restores
-the query, filters, selection and scroll position on return.
+controls narrow the docket; overview remains full width while the shorter financial and score-item
+evidence share a two-column reading band when space permits. Mobile turns the same structure into
+docket-then-detail navigation and restores the query, filters, selection and scroll position on
+return.
 
 This is the repeated analyst motion: triage a queue, inspect evidence, return without reconstructing
 the queue. A continuous file also keeps relationships visible that independent tabs would hide.
@@ -135,8 +136,11 @@ the queue. A continuous file also keeps relationships visible that independent t
 long, uneven lists at two hundred. Complete and Pending survive as compact filters instead.
 
 **Rejected: a tab-only dossier.** It reduces first-view density by hiding evidence categories from
-one another. Section navigation provides the same wayfinding without making comparison a memory
-task.
+one another and makes comparison a memory task.
+
+**Rejected: sticky in-file section links.** Three links consumed a full toolbar while every section
+was already visible in a short continuous file. At this viewport the repeated headings supply the
+wayfinding; the toolbar keeps only file-level actions.
 
 **Rejected: global risk and thin-file filters.** Those fields live behind detail endpoints. Fetching
 every credit report to power a docket control would reverse list-then-detail; filtering only cached
