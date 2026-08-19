@@ -423,7 +423,7 @@
 	.app-shell,
 	.workspace,
 	.file-sheet {
-		display: block;
+		display: block !important;
 		max-height: none;
 		overflow: visible;
 		background: var(--color-sheet);
