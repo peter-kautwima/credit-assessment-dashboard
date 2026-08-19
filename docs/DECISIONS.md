@@ -156,6 +156,23 @@ pretend that risk is unavailable; they simply show the list data the API has sup
 **Rejected: replacing Complete with High risk.** Completion is workflow state while risk is report
 evidence; Bright Construction is truthfully both. Collapsing them would discard useful information.
 
+## Visual reset: an analyst's case ledger
+
+The first implementation used a conventional navy application shell with generous white panels.
+It was credible but generic, and at the supplied viewport it spent too much space on chrome and
+section gaps while weakening the score, risk and cash hierarchy. The revised world is a compact
+case ledger: warm paper, dark teal form furniture, black reported values, square status stamps and
+rules that hold evidence in fixed reading bands. It retains neutral ownership rather than borrowing
+the hiring company's brand.
+
+The prior V1 screenshots are the quality bar for density and operational specificity. The current
+architecture, async states, focus management and on-demand data boundary remain product truth; only
+the visual world and composition are replaced.
+
+**Rejected: polishing the navy dashboard.** Its weakness was the composition and visual metaphor,
+not a handful of spacing values. Further refinement would preserve the generic shell that caused
+the problem.
+
 ## Attention: high risk or pending, stated explicitly
 
 Only a reported High risk band or a Pending assessment earns an attention cue. Thin-file status and

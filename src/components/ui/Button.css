@@ -23,7 +23,8 @@
 .button--secondary {
 	border-color: var(--color-rule-strong);
 	background: var(--color-sheet);
-	color: var(--color-navy);
+	color: var(--color-ink);
+	text-transform: uppercase;
 }
 
 .button--secondary:hover {

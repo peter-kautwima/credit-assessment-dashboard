@@ -4,15 +4,15 @@
 	min-width: 0;
 	min-height: 0;
 	border-right: 0.0625rem solid var(--color-rule);
-	background: var(--color-sheet);
+	background: var(--color-paper);
 }
 
 .docket__header {
 	position: relative;
 	z-index: 1;
-	padding: var(--space-5);
-	border-bottom: 0.0625rem solid var(--color-rule);
-	background: var(--color-sheet);
+	padding: var(--space-5) var(--space-5) var(--space-4);
+	border-bottom: 0.125rem solid var(--color-navy);
+	background: var(--color-paper);
 }
 
 .docket__header h2,
@@ -21,8 +21,11 @@
 }
 
 .docket__header h2 {
-	font-size: var(--font-size-lg);
+	color: var(--color-navy);
+	font-size: var(--font-size-sm);
+	letter-spacing: var(--tracking-label);
 	line-height: var(--line-tight);
+	text-transform: uppercase;
 }
 
 .docket__header p {
@@ -35,7 +38,7 @@
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: var(--space-3);
-	margin-top: var(--space-5);
+	margin-top: var(--space-4);
 }
 
 .docket__filters label:last-child {
@@ -58,7 +61,7 @@
 	padding: 0 var(--space-3);
 	border: 0.0625rem solid var(--color-rule-strong);
 	border-radius: var(--radius-sm);
-	background: var(--color-sheet);
+	background: transparent;
 	color: var(--color-ink);
 	font-size: var(--font-size-sm);
 	font-weight: 600;
@@ -80,7 +83,7 @@
 	padding: var(--space-4) var(--space-5);
 	border: 0;
 	border-bottom: 0.0625rem solid var(--color-rule);
-	background: var(--color-sheet);
+	background: var(--color-paper);
 	color: var(--color-ink);
 	font: inherit;
 	text-align: left;
@@ -89,12 +92,12 @@
 }
 
 .docket-row:hover {
-	background: var(--color-paper);
+	background: var(--color-sheet);
 }
 
 .docket-row[aria-current="true"] {
-	background: var(--color-info-soft);
-	box-shadow: inset 0.1875rem 0 var(--color-navy);
+	background: var(--color-sheet);
+	box-shadow: inset 0.1875rem 0 var(--color-attention);
 }
 
 .docket-row__topline,
@@ -106,7 +109,7 @@
 }
 
 .docket-row__topline strong {
-	font-size: var(--font-size-sm);
+	font-size: var(--font-size-base);
 	line-height: 1.35;
 }
 
@@ -141,6 +144,8 @@
 
 .docket-row__risk--high strong {
 	color: var(--color-attention);
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
 }
 
 .docket-row__unreviewed {
