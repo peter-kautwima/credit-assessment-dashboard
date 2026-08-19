@@ -1,0 +1,18 @@
+node_modules
+dist
+.env
+.DS_Store
+
+# local agent tooling and generated design artifacts
+.agents/
+.claude/
+.codex/
+.github/agents/
+.github/hooks/
+.github/skills/
+.impeccable/
+
+# never committable
+_local/
+*-HANDOFF.md
+.impeccable/review/
