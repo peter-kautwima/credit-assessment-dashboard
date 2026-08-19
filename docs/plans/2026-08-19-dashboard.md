@@ -32,7 +32,7 @@ loads every detail before it is requested and ignores the relational API shape.
 | File sheet | Score/risk, financials, categories, attention and Pending | Complete |
 | Review | Fresh reviewer findings written before fixes | Complete |
 | Search | Discoverable field, `/`, Escape, highlighting, composed results | Complete |
-| Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | Optional |
+| Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | In progress |
 | Ship | README, leak grep, full verify, linear main | Pending |
 
 ## Interaction contract

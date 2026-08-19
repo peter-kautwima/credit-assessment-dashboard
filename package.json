@@ -7,6 +7,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"api": "json-server data.json --port 3001",
+		"fixture:scale": "node scripts/generate-scale-fixture.mjs 2000",
 		"check": "biome check .",
 		"test": "vitest",
 		"verify": "biome check . && vitest run && vite build"
