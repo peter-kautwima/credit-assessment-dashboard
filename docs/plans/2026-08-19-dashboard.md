@@ -26,8 +26,8 @@ loads every detail before it is requested and ignores the relational API shape.
 | Wave | Acceptance evidence | Status |
 |---|---|---|
 | Context and toolchain | Original brief hash preserved; `npm run verify` passes | Complete |
-| Tokens and primitives | Reusable tokens and small rendered primitives | In progress |
-| Data layer | Newest assessment, lazy details, cache/retry tests | Pending |
+| Tokens and primitives | Reusable tokens and small rendered primitives | Complete |
+| Data layer | Newest assessment, lazy details, cache/retry tests | In progress |
 | Docket | Five rows, status/industry controls, sorting, keyboard selection | Pending |
 | File sheet | Score/risk, financials, categories, attention and Pending | Pending |
 | Review | Fresh reviewer findings written before fixes | Pending |
