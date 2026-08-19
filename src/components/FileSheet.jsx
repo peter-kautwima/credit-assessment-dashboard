@@ -60,7 +60,10 @@ function FileSheetContent({ entry, onBack, headingRef, onReportResolved }) {
 
 			<header className="file-header">
 				<div>
-					<p>{business.registrationNumber}</p>
+					<p className="file-header__reference">
+						<span>{business.registrationNumber}</span>
+						<span>File {assessment.id}</span>
+					</p>
 					<h1 id="file-title" ref={headingRef} tabIndex={-1}>
 						{business.name}
 					</h1>

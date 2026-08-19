@@ -62,6 +62,16 @@
 	font-variant-numeric: tabular-nums;
 }
 
+.file-header__reference {
+	display: flex;
+	gap: var(--space-4);
+}
+
+.file-header__reference span + span {
+	padding-left: var(--space-4);
+	border-left: 0.0625rem solid var(--color-rule-strong);
+}
+
 .file-header__status {
 	display: grid;
 	justify-items: end;
@@ -198,6 +208,10 @@
 	margin-top: var(--space-3);
 	color: var(--color-ink-soft);
 	font-size: var(--font-size-xs);
+}
+
+.score-readout small {
+	margin-top: var(--space-6);
 }
 
 .score-scale {

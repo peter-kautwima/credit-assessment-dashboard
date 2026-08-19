@@ -151,4 +151,48 @@ describe('Docket', () => {
 		act(() => vi.advanceTimersByTime(500))
 		expect(liveCount).toHaveTextContent('1 file in view')
 	})
+
+	it('searches assessment file metadata', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+		const search = screen.getByLabelText(/Find a file/)
+
+		await user.type(search, '105')
+		expect(screen.getByText('Echo Tech Solutions')).toBeVisible()
+		expect(screen.queryByText('Acme Traders')).not.toBeInTheDocument()
+	})
+
+	it('names and applies both assessment date directions', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+		const list = screen.getByRole('list', { name: 'Businesses' })
+
+		await user.selectOptions(screen.getByLabelText('Sort by'), 'date')
+		expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Echo Tech Solutions')
+		await user.selectOptions(screen.getByLabelText('Sort by'), 'dateAsc')
+		expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Acme Traders')
+	})
+
+	it('filters and sorts only the risk evidence reviewed in this session', async () => {
+		const user = userEvent.setup()
+		render(
+			<Docket
+				entries={entries}
+				selectedId={1}
+				onSelect={vi.fn()}
+				reportSummaries={{
+					101: { riskBand: 'Medium', score: 612 },
+					102: { riskBand: 'High', score: 384 },
+				}}
+			/>,
+		)
+		const list = screen.getByRole('list', { name: 'Businesses' })
+
+		await user.selectOptions(screen.getByLabelText('Reviewed risk'), 'High')
+		expect(within(list).getAllByRole('button')).toHaveLength(1)
+		expect(within(list).getByText('Bright Construction')).toBeVisible()
+		await user.selectOptions(screen.getByLabelText('Reviewed risk'), 'All')
+		await user.selectOptions(screen.getByLabelText('Sort by'), 'risk')
+		expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Bright Construction')
+	})
 })

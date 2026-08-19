@@ -10,20 +10,70 @@ const sorters = {
 	date: (left, right) =>
 		(right.assessment?.createdDate ?? '').localeCompare(left.assessment?.createdDate ?? '') ||
 		left.business.name.localeCompare(right.business.name),
+	dateAsc: (left, right) =>
+		(left.assessment?.createdDate ?? '').localeCompare(right.assessment?.createdDate ?? '') ||
+		left.business.name.localeCompare(right.business.name),
+	nameDesc: (left, right) => right.business.name.localeCompare(left.business.name),
+	reference: (left, right) =>
+		(left.assessment?.id ?? Number.POSITIVE_INFINITY) -
+		(right.assessment?.id ?? Number.POSITIVE_INFINITY),
 }
 
-export function filterAndSortDocket(entries, { query = '', status, industry, sort }) {
-	return entries
+export function filterAndSortDocket(
+	entries,
+	{ query = '', status, industry, risk, sort },
+	reportSummaries = {},
+) {
+	const riskOrder = { High: 0, Medium: 1, Low: 2 }
+	const filtered = entries
 		.filter((entry) => {
 			const normalizedQuery = query.trim().toLocaleLowerCase()
 			if (!normalizedQuery) return true
-			return [entry.business.name, entry.business.registrationNumber, entry.business.industry].some(
-				(value) => value.toLocaleLowerCase().includes(normalizedQuery),
+			const summary = reportSummaries[entry.assessment?.id]
+			return (
+				[entry.business.name, entry.business.registrationNumber, entry.business.industry].some(
+					(value) => value.toLocaleLowerCase().includes(normalizedQuery),
+				) ||
+				[entry.assessment?.id, entry.assessment?.status, entry.assessment?.createdDate]
+					.filter((value) => value != null)
+					.some((value) => String(value).toLocaleLowerCase().includes(normalizedQuery)) ||
+				[summary?.riskBand, summary?.score]
+					.filter((value) => value != null)
+					.some((value) => String(value).toLocaleLowerCase().includes(normalizedQuery))
 			)
 		})
 		.filter((entry) => status === 'All' || entry.assessment?.status === status)
 		.filter((entry) => industry === 'All' || entry.business.industry === industry)
-		.toSorted(sorters[sort] ?? sorters.name)
+		.filter((entry) => {
+			if (risk === 'All') return true
+			const assessmentId = entry.assessment?.id
+			const hasSummary = Object.hasOwn(reportSummaries, assessmentId)
+			if (risk === 'Not reviewed') return !hasSummary
+			if (risk === 'Not reported')
+				return hasSummary && reportSummaries[assessmentId]?.riskBand == null
+			return reportSummaries[assessmentId]?.riskBand === risk
+		})
+
+	if (sort === 'risk') {
+		return filtered.toSorted((left, right) => {
+			const leftRank = riskOrder[reportSummaries[left.assessment?.id]?.riskBand] ?? 3
+			const rightRank = riskOrder[reportSummaries[right.assessment?.id]?.riskBand] ?? 3
+			return leftRank - rightRank || sorters.name(left, right)
+		})
+	}
+	if (sort === 'scoreDesc' || sort === 'scoreAsc') {
+		return filtered.toSorted((left, right) => {
+			const leftScore = reportSummaries[left.assessment?.id]?.score
+			const rightScore = reportSummaries[right.assessment?.id]?.score
+			if (leftScore == null) return rightScore == null ? sorters.name(left, right) : 1
+			if (rightScore == null) return -1
+			return (
+				(sort === 'scoreDesc' ? rightScore - leftScore : leftScore - rightScore) ||
+				sorters.name(left, right)
+			)
+		})
+	}
+	return filtered.toSorted(sorters[sort] ?? sorters.name)
 }
 
 export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportSummaries = {} }) {
@@ -31,6 +81,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		query: '',
 		status: 'All',
 		industry: 'All',
+		risk: 'All',
 		sort: 'name',
 	})
 	const [announcedCount, setAnnouncedCount] = useState(entries.length)
@@ -49,7 +100,10 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		}),
 		[entries],
 	)
-	const visibleEntries = useMemo(() => filterAndSortDocket(entries, filters), [entries, filters])
+	const visibleEntries = useMemo(
+		() => filterAndSortDocket(entries, filters, reportSummaries),
+		[entries, filters, reportSummaries],
+	)
 	const visibleIds = useMemo(
 		() => visibleEntries.map((entry) => entry.business.id),
 		[visibleEntries],
@@ -92,7 +146,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 	function applyFilter(name, value) {
 		setFilters((current) => {
 			const nextFilters = { ...current, [name]: value }
-			const nextVisibleIds = filterAndSortDocket(entries, nextFilters).map(
+			const nextVisibleIds = filterAndSortDocket(entries, nextFilters, reportSummaries).map(
 				(entry) => entry.business.id,
 			)
 			onVisibleChange?.(nextVisibleIds)
@@ -110,7 +164,9 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		const nextFilters = { ...filters, query: '' }
 		restoreListFocusRef.current = true
 		setFilters(nextFilters)
-		onVisibleChange?.(filterAndSortDocket(entries, nextFilters).map((entry) => entry.business.id))
+		onVisibleChange?.(
+			filterAndSortDocket(entries, nextFilters, reportSummaries).map((entry) => entry.business.id),
+		)
 	}
 
 	function handleRowKeyDown(event) {
@@ -139,7 +195,10 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 				</div>
 
 				<label className="docket__search">
-					<span>Find a file</span>
+					<span className="docket__search-label">
+						<span>Find a file</span>
+						<small>Press / to search</small>
+					</span>
 					<span className="docket__search-control">
 						<input
 							ref={searchRef}
@@ -148,9 +207,8 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 							value={filters.query}
 							onChange={updateFilter}
 							onKeyDown={handleSearchKeyDown}
-							placeholder="Business name, registration or industry"
+							placeholder="Name, reference, industry, status or date"
 						/>
-						<kbd>/</kbd>
 					</span>
 				</label>
 				<p className="sr-only" aria-live="polite">
@@ -188,9 +246,26 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 					<label>
 						<span>Sort by</span>
 						<select id="sort-order" name="sort" onChange={updateFilter} defaultValue="name">
-							<option value="name">Business name</option>
-							<option value="industry">Industry</option>
-							<option value="date">Assessment date</option>
+							<option value="name">Business name A–Z</option>
+							<option value="nameDesc">Business name Z–A</option>
+							<option value="date">Newest assessment</option>
+							<option value="dateAsc">Oldest assessment</option>
+							<option value="industry">Industry A–Z</option>
+							<option value="reference">File reference</option>
+							<option value="risk">Reviewed risk — High first</option>
+							<option value="scoreDesc">Reviewed score — High first</option>
+							<option value="scoreAsc">Reviewed score — Low first</option>
+						</select>
+					</label>
+					<label>
+						<span>Reviewed risk</span>
+						<select name="risk" onChange={updateFilter}>
+							<option value="All">All files</option>
+							<option value="High">High</option>
+							<option value="Medium">Medium</option>
+							<option value="Low">Low</option>
+							<option value="Not reviewed">Not reviewed</option>
+							<option value="Not reported">No reported risk</option>
 						</select>
 					</label>
 				</div>
@@ -225,7 +300,10 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 										<span>{highlightMatch(business.registrationNumber, filters.query)}</span>
 									</span>
 									{assessment && (
-										<span className="docket-row__date">Assessed {assessment.createdDate}</span>
+										<span className="docket-row__date">
+											<span>File {assessment.id}</span>
+											<span>Assessed {highlightMatch(assessment.createdDate, filters.query)}</span>
+										</span>
 									)}
 									{reportSummary?.riskBand && (
 										<span

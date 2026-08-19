@@ -49,6 +49,16 @@ Pending are exposed as one-click status choices with counts: the set is small, s
 enough that hiding it in a select adds work. Industry and sort remain native selects because their
 option sets are secondary and industry can grow with the docket.
 
+Search covers every useful field already present in the docket response: business name,
+registration number, industry, workflow status, assessment date and assessment id as the file
+reference. Ordering names its direction explicitly and includes file reference; a bare “assessment
+date” option hides whether newest or oldest comes first.
+
+Risk and score controls are explicitly scoped to **reviewed** files. They operate on reports already
+loaded into the session cache, put unreviewed files last when sorting, and never claim to represent
+the whole docket. This gives analysts useful session-level triage without issuing one detail request
+per business.
+
 **Rejected: three equal dropdowns.** It gives every control the same visual weight and hides the
 Pending workload that an analyst should be able to read without opening anything.
 

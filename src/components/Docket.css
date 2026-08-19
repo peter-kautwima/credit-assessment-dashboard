@@ -31,6 +31,22 @@
 	text-transform: uppercase;
 }
 
+.docket__search-label,
+.docket-row__date {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-2);
+}
+
+.docket__search-label small {
+	color: var(--color-ink-soft);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
 .docket__search-control {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
@@ -58,15 +74,6 @@
 
 .docket__search-control:focus-within {
 	box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--color-focus) 35%, transparent);
-}
-
-.docket__search kbd {
-	margin-right: var(--space-2);
-	padding: var(--space-1) var(--space-2);
-	border: 0.0625rem solid var(--color-rule-strong);
-	background: var(--color-paper);
-	color: var(--color-ink-soft);
-	font: inherit;
 }
 
 .docket__header h2 {
@@ -98,6 +105,10 @@
 	font-weight: 700;
 	letter-spacing: var(--tracking-label);
 	text-transform: uppercase;
+}
+
+.docket__filters label:last-child {
+	grid-column: 1 / -1;
 }
 
 .docket__status-filter {
@@ -151,7 +162,8 @@
 	opacity: 0.75;
 }
 
-.docket__filters select {
+.docket__filters select,
+.docket__filters input {
 	width: 100%;
 	min-height: var(--control-height);
 	padding: 0 var(--space-3);
