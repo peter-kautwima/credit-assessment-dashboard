@@ -33,7 +33,7 @@ loads every detail before it is requested and ignores the relational API shape.
 | Review | Fresh reviewer findings written before fixes | Complete |
 | Search | Discoverable field, `/`, Escape, highlighting, composed results | Complete |
 | Scale | 2,000 logical files, fewer than 30 rendered rows at 720px | Complete |
-| Ship | README, leak grep, full verify, linear main | Pending |
+| Ship | README, leak grep, full verify, linear main | In progress |
 
 ## Interaction contract
 
