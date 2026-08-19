@@ -92,7 +92,9 @@ function FileSheetContent({ entry, onBack, headingRef, onReportResolved }) {
 					<p>Reported score and risk profile</p>
 				</div>
 				<Resource resource={details.report} label="credit report">
-					{(creditReport) => <CreditOverview report={creditReport} />}
+					{(creditReport) => (
+						<CreditOverview report={creditReport} assessmentStatus={assessment.status} />
+					)}
 				</Resource>
 			</section>
 
@@ -103,7 +105,9 @@ function FileSheetContent({ entry, onBack, headingRef, onReportResolved }) {
 						<p>Computed from the analysed bank-statement period</p>
 					</div>
 					<Resource resource={details.statement} label="bank statement">
-						{(statement) => <FinancialPicture statement={statement} />}
+						{(statement) => (
+							<FinancialPicture statement={statement} assessmentStatus={assessment.status} />
+						)}
 					</Resource>
 				</section>
 
@@ -158,33 +162,52 @@ function Resource({ resource, label, children, emptyArray = false }) {
 	return children(resource.data)
 }
 
-function CreditOverview({ report }) {
-	if (report.score == null || report.riskBand == null) {
+function CreditOverview({ report, assessmentStatus }) {
+	if (report.score == null && report.riskBand == null && report.isThinFile == null) {
 		return (
 			<div className="panel-state panel-state--pending">
 				<strong>Score not yet available</strong>
-				<span>This Pending assessment has no reported score or risk band.</span>
+				<span>
+					{assessmentStatus === 'Pending'
+						? 'This Pending assessment has no reported score or risk band.'
+						: 'No score or risk band was reported for this assessment.'}
+				</span>
 			</div>
 		)
 	}
 
-	const scorePosition = `${Math.min(100, Math.max(0, (report.score / 850) * 100))}%`
+	const scorePosition =
+		report.score == null ? null : `${Math.min(100, Math.max(0, (report.score / 850) * 100))}%`
 
 	return (
 		<div className="credit-overview">
 			<div className="score-readout">
 				<span>Credit score</span>
-				<strong>{report.score}</strong>
-				<div className="score-scale" aria-label={`Score ${report.score} on a display scale to 850`}>
-					<span className="score-scale__position" style={{ '--score-position': scorePosition }} />
-				</div>
-				<small>Display scale 0–850; the source data does not state a maximum.</small>
+				<strong>{report.score ?? 'Not reported'}</strong>
+				{scorePosition && (
+					<>
+						<div
+							className="score-scale"
+							aria-label={`Score ${report.score} on a display scale to 850`}
+						>
+							<span
+								className="score-scale__position"
+								style={{ '--score-position': scorePosition }}
+							/>
+						</div>
+						<small>Display scale 0–850; the source data does not state a maximum.</small>
+					</>
+				)}
 			</div>
 			<dl className="profile-list">
 				<div>
 					<dt>Risk band</dt>
 					<dd>
-						<StatusBadge status={report.riskBand}>{report.riskBand}</StatusBadge>
+						{report.riskBand == null ? (
+							'Risk band not reported'
+						) : (
+							<StatusBadge status={report.riskBand}>{report.riskBand}</StatusBadge>
+						)}
 					</dd>
 				</div>
 				<div>
@@ -202,31 +225,59 @@ function CreditOverview({ report }) {
 	)
 }
 
-function FinancialPicture({ statement }) {
+function FinancialPicture({ statement, assessmentStatus }) {
 	if (
-		statement.totalCredits == null ||
-		statement.totalDebits == null ||
+		statement.totalCredits == null &&
+		statement.totalDebits == null &&
 		statement.monthsAnalysed == null
 	) {
 		return (
 			<div className="panel-state panel-state--pending">
 				<strong>Bank-statement values not yet available</strong>
-				<span>This Pending assessment has no reported financial totals.</span>
+				<span>
+					{assessmentStatus === 'Pending'
+						? 'This Pending assessment has no reported financial totals.'
+						: 'No bank-statement totals were reported for this assessment.'}
+				</span>
 			</div>
 		)
 	}
 
-	const surplus = statement.totalCredits - statement.totalDebits
-	const monthlySurplus = surplus / statement.monthsAnalysed
+	const hasTotals = statement.totalCredits != null && statement.totalDebits != null
+	const surplus = hasTotals ? statement.totalCredits - statement.totalDebits : null
+	const monthlySurplus =
+		surplus != null && statement.monthsAnalysed ? surplus / statement.monthsAnalysed : null
 	return (
 		<div className="financial-grid">
-			<Metric label="Total credits" value={money.format(statement.totalCredits)} />
-			<Metric label="Total debits" value={money.format(statement.totalDebits)} />
-			<Metric label="Computed surplus" value={money.format(surplus)} emphasis />
-			<Metric label="Computed monthly surplus" value={money.format(monthlySurplus)} />
+			<Metric
+				label="Total credits"
+				value={
+					statement.totalCredits == null
+						? 'Total credits not reported'
+						: money.format(statement.totalCredits)
+				}
+			/>
+			<Metric
+				label="Total debits"
+				value={
+					statement.totalDebits == null
+						? 'Total debits not reported'
+						: money.format(statement.totalDebits)
+				}
+			/>
+			<Metric
+				label="Computed surplus"
+				value={surplus == null ? 'Unavailable' : money.format(surplus)}
+				emphasis
+			/>
+			<Metric
+				label="Computed monthly surplus"
+				value={monthlySurplus == null ? 'Unavailable' : money.format(monthlySurplus)}
+			/>
 			<p className="financial-grid__note">
-				Based on {statement.monthsAnalysed} months analysed; totals are period figures, not a
-				transaction ledger.
+				{statement.monthsAnalysed == null
+					? 'Months analysed not reported; totals are period figures, not a transaction ledger.'
+					: `Based on ${statement.monthsAnalysed} months analysed; totals are period figures, not a transaction ledger.`}
 			</p>
 		</div>
 	)

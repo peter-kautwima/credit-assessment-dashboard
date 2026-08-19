@@ -119,6 +119,28 @@ describe('FileSheet', () => {
 		expect(screen.queryByText('Established file')).not.toBeInTheDocument()
 	})
 
+	it('preserves partial evidence without calling a complete file pending', async () => {
+		creditApi.loadCreditReport.mockResolvedValue({
+			score: 612,
+			riskBand: null,
+			isThinFile: false,
+		})
+		creditApi.loadBankStatement.mockResolvedValue({
+			totalCredits: 485000,
+			totalDebits: null,
+			monthsAnalysed: 3,
+		})
+		creditApi.loadScoreItems.mockResolvedValue([])
+
+		render(<FileSheet entry={completeEntry} onBack={() => {}} />)
+
+		expect(await screen.findByText('612')).toBeVisible()
+		expect(screen.getByText('Risk band not reported')).toBeVisible()
+		expect(screen.getByText(/485[ ,. ]000/)).toBeVisible()
+		expect(screen.getByText('Total debits not reported')).toBeVisible()
+		expect(screen.queryByText(/This Pending assessment/)).not.toBeInTheDocument()
+	})
+
 	it('removes resolved evidence at the assessment boundary', async () => {
 		creditApi.loadCreditReport.mockResolvedValueOnce({
 			score: 612,
