@@ -59,7 +59,7 @@ They cover desktop High-risk triage and narrow-screen docket/detail focus restor
 does not own the servers in this repository, so the command cannot disrupt a running development
 session.
 
-The shipped `data.json` remains the runtime default and is unchanged. `data-2000.json` is a
+The shipped `data.json` remains the runtime default and is unchanged. `fixtures/data-2000.json` is a
 deterministic scale fixture that preserves every shipped row and extends the same schema:
 
 ```bash
@@ -67,7 +67,7 @@ npm run fixture:scale
 ```
 
 The scale test proves that a 2,000-file logical set renders fewer than 30 rows in a 720px viewport.
-The generator writes only `data-2000.json`; it never replaces the shipped API fixture.
+The generator writes only `fixtures/data-2000.json`; it never replaces the shipped API fixture.
 
 ## Decisions and design
 

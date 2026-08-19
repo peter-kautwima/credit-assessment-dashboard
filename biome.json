@@ -38,7 +38,7 @@
 			"playwright-report",
 			"test-results",
 			"data.json",
-			"data-*.json",
+			"fixtures",
 			".agents",
 			".claude",
 			".codex",

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import scaleFixture from '../../data-2000.json'
+import scaleFixture from '../../fixtures/data-2000.json'
 import { Docket, filterAndSortDocket } from './Docket'
 
 const entries = [

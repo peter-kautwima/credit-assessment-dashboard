@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 
 const source = JSON.parse(await readFile(new URL('../data.json', import.meta.url), 'utf8'))
 const targetSize = Number(process.argv[2] ?? 2000)
@@ -94,8 +94,10 @@ for (let businessId = source.businesses.length + 1; businessId <= targetSize; bu
 	}
 }
 
+const fixtureDirectory = new URL('../fixtures/', import.meta.url)
+await mkdir(fixtureDirectory, { recursive: true })
 await writeFile(
-	new URL(`../data-${targetSize}.json`, import.meta.url),
+	new URL(`data-${targetSize}.json`, fixtureDirectory),
 	`${JSON.stringify(fixture, null, 2)}\n`,
 )
 
