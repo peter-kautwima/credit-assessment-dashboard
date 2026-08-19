@@ -19,7 +19,16 @@ const entries = [
 			industry: 'Construction',
 			registrationNumber: '2020/456789/07',
 		},
-		assessment: { id: 102, createdDate: '2024-11-18', status: 'Pending' },
+		assessment: { id: 102, createdDate: '2024-11-18', status: 'Complete' },
+	},
+	{
+		business: {
+			id: 5,
+			name: 'Echo Tech Solutions',
+			industry: 'Technology',
+			registrationNumber: '2022/567890/07',
+		},
+		assessment: { id: 105, createdDate: '2024-11-22', status: 'Pending' },
 	},
 ]
 
@@ -27,10 +36,10 @@ describe('Docket', () => {
 	it('filters and sorts the composed set deterministically', () => {
 		expect(
 			filterAndSortDocket(entries, { status: 'Complete', industry: 'All', sort: 'industry' }),
-		).toEqual([entries[0]])
+		).toEqual([entries[1], entries[0]])
 		expect(
 			filterAndSortDocket(entries, { status: 'All', industry: 'All', sort: 'industry' }),
-		).toEqual([entries[1], entries[0]])
+		).toEqual([entries[1], entries[0], entries[2]])
 	})
 
 	it('applies status filters and updates the visible count', async () => {
@@ -41,7 +50,32 @@ describe('Docket', () => {
 
 		expect(screen.getByText('1 files in view')).toBeVisible()
 		expect(screen.queryByText('Acme Traders')).not.toBeInTheDocument()
-		expect(screen.getByText('Bright Construction')).toBeVisible()
+		expect(screen.getByText('Echo Tech Solutions')).toBeVisible()
+	})
+
+	it('keeps workflow status and loaded risk evidence distinct', () => {
+		render(
+			<Docket
+				entries={entries}
+				selectedId={2}
+				onSelect={vi.fn()}
+				reportSummaries={{ 102: { riskBand: 'High', score: 384 } }}
+			/>,
+		)
+
+		const brightRow = screen.getByRole('button', { name: /Bright Construction/ })
+		expect(within(brightRow).getByText('Complete')).toBeVisible()
+		expect(within(brightRow).getByText('High risk')).toBeVisible()
+		expect(within(brightRow).getByText('Score 384')).toBeVisible()
+		expect(within(brightRow).queryByText('Risk available on review')).not.toBeInTheDocument()
+	})
+
+	it('does not let an unopened completed file imply low risk', () => {
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+
+		const brightRow = screen.getByRole('button', { name: /Bright Construction/ })
+		expect(within(brightRow).getByText('Complete')).toBeVisible()
+		expect(within(brightRow).getByText('Risk available on review')).toBeVisible()
 	})
 
 	it('moves focus between rows without stealing arrow keys from fields', async () => {

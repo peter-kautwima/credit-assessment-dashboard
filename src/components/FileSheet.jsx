@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useAssessmentDetails } from '../hooks/useAssessmentDetails'
 import { Button } from './ui/Button'
 import { StatusBadge } from './ui/StatusBadge'
@@ -6,18 +7,30 @@ import './FileSheet.css'
 const money = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })
 const number = new Intl.NumberFormat('en-ZA', { maximumFractionDigits: 1 })
 
-export function FileSheet({ entry, onBack, headingRef }) {
+export function FileSheet({ entry, onBack, headingRef, onReportResolved }) {
 	const boundaryKey = entry.assessment?.id ?? `business-${entry.business.id}`
 	return (
-		<FileSheetContent key={boundaryKey} entry={entry} onBack={onBack} headingRef={headingRef} />
+		<FileSheetContent
+			key={boundaryKey}
+			entry={entry}
+			onBack={onBack}
+			headingRef={headingRef}
+			onReportResolved={onReportResolved}
+		/>
 	)
 }
 
-function FileSheetContent({ entry, onBack, headingRef }) {
+function FileSheetContent({ entry, onBack, headingRef, onReportResolved }) {
 	const { business, assessment } = entry
 	const details = useAssessmentDetails(assessment?.id)
 	const report = details.report.data
 	const needsAttention = assessment?.status === 'Pending' || report?.riskBand === 'High'
+
+	useEffect(() => {
+		if (details.report.status === 'success') {
+			onReportResolved?.(assessment?.id, details.report.data)
+		}
+	}, [assessment?.id, details.report.data, details.report.status, onReportResolved])
 
 	if (!assessment) {
 		return (

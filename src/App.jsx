@@ -11,6 +11,7 @@ export default function App() {
 	const [selectedId, setSelectedId] = useState(null)
 	const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
 	const [restoreFocusId, setRestoreFocusId] = useState(null)
+	const [reportSummaries, setReportSummaries] = useState({})
 	const [requestKey, setRequestKey] = useState(0)
 	const detailHeadingRef = useRef(null)
 	const isMobile = useMediaQuery('(max-width: 52rem)')
@@ -48,6 +49,16 @@ export default function App() {
 			if (visibleIds.length === 0) return null
 			return visibleIds.includes(current) ? current : visibleIds[0]
 		})
+	}, [])
+	const handleReportResolved = useCallback((assessmentId, report) => {
+		if (assessmentId == null || report == null) return
+		setReportSummaries((current) => ({
+			...current,
+			[assessmentId]: {
+				riskBand: report.riskBand,
+				score: report.score,
+			},
+		}))
 	}, [])
 	const returnToDocket = () => {
 		setRestoreFocusId(selectedId)
@@ -95,12 +106,14 @@ export default function App() {
 							selectedId={selectedId}
 							onSelect={selectEntry}
 							onVisibleChange={handleVisibleChange}
+							reportSummaries={reportSummaries}
 						/>
 						{selectedEntry && (!isMobile || mobileDetailOpen) && (
 							<FileSheet
 								entry={selectedEntry}
 								onBack={returnToDocket}
 								headingRef={detailHeadingRef}
+								onReportResolved={handleReportResolved}
 							/>
 						)}
 					</>

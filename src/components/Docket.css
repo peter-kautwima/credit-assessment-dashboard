@@ -120,6 +120,35 @@
 	font-variant-numeric: tabular-nums;
 }
 
+.docket-row__risk {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-3);
+	padding-top: var(--space-2);
+	border-top: 0.0625rem solid var(--color-rule);
+	color: var(--color-ink-soft);
+	font-size: var(--font-size-xs);
+}
+
+.docket-row__risk strong {
+	color: var(--color-ink);
+}
+
+.docket-row__risk--high {
+	border-top-color: var(--color-attention);
+}
+
+.docket-row__risk--high strong {
+	color: var(--color-attention);
+}
+
+.docket-row__unreviewed {
+	color: var(--color-ink-soft);
+	font-size: var(--font-size-xs);
+	font-style: italic;
+}
+
 .docket__empty {
 	max-width: 28ch;
 	margin: var(--space-7) auto;

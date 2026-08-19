@@ -34,6 +34,7 @@ describe('FileSheet', () => {
 	})
 
 	it('derives the financial picture from reported values', async () => {
+		const onReportResolved = vi.fn()
 		creditApi.loadCreditReport.mockResolvedValue({
 			score: 612,
 			riskBand: 'Medium',
@@ -48,13 +49,20 @@ describe('FileSheet', () => {
 			{ id: 401, category: 'Payment History', score: 68.5 },
 		])
 
-		render(<FileSheet entry={completeEntry} onBack={() => {}} />)
+		render(
+			<FileSheet entry={completeEntry} onBack={() => {}} onReportResolved={onReportResolved} />,
+		)
 
 		expect(await screen.findByText('612')).toBeVisible()
 		expect(screen.getByText('Medium')).toBeVisible()
 		const financials = screen.getByRole('region', { name: 'Financial picture' })
 		expect(within(financials).getByText(/173[ ,.\u00a0]000/)).toBeVisible()
 		expect(screen.getByText('Payment History')).toBeVisible()
+		expect(onReportResolved).toHaveBeenCalledWith(101, {
+			score: 612,
+			riskBand: 'Medium',
+			isThinFile: false,
+		})
 	})
 
 	it('states pending values in words and never renders a zero score', async () => {

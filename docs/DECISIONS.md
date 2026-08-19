@@ -146,6 +146,16 @@ wayfinding; the toolbar keeps only file-level actions.
 every credit report to power a docket control would reverse list-then-detail; filtering only cached
 files would present an incomplete population as complete.
 
+### Progressive risk cues
+
+The docket shows workflow status immediately. After an analyst opens a file, its cached report adds
+the reported risk band and score to that row for the rest of the session. This makes `Complete` and
+`High risk` visibly distinct concepts without loading every report upfront. Unopened rows never
+pretend that risk is unavailable; they simply show the list data the API has supplied so far.
+
+**Rejected: replacing Complete with High risk.** Completion is workflow state while risk is report
+evidence; Bright Construction is truthfully both. Collapsing them would discard useful information.
+
 ## Attention: high risk or pending, stated explicitly
 
 Only a reported High risk band or a Pending assessment earns an attention cue. Thin-file status and

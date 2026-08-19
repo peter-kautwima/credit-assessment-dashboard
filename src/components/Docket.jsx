@@ -19,7 +19,7 @@ export function filterAndSortDocket(entries, { status, industry, sort }) {
 		.toSorted(sorters[sort] ?? sorters.name)
 }
 
-export function Docket({ entries, selectedId, onSelect, onVisibleChange }) {
+export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportSummaries = {} }) {
 	const [filters, setFilters] = useState({ status: 'All', industry: 'All', sort: 'name' })
 
 	const industries = useMemo(
@@ -106,6 +106,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange }) {
 				{visibleEntries.length ? (
 					visibleEntries.map(({ business, assessment }) => {
 						const isSelected = business.id === selectedId
+						const reportSummary = reportSummaries[assessment?.id]
 						return (
 							<li key={business.id}>
 								<button
@@ -131,6 +132,19 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange }) {
 									</span>
 									{assessment && (
 										<span className="docket-row__date">Assessed {assessment.createdDate}</span>
+									)}
+									{reportSummary?.riskBand && (
+										<span
+											className={`docket-row__risk${
+												reportSummary.riskBand === 'High' ? ' docket-row__risk--high' : ''
+											}`}
+										>
+											<strong>{reportSummary.riskBand} risk</strong>
+											{reportSummary.score != null && <span>Score {reportSummary.score}</span>}
+										</span>
+									)}
+									{assessment?.status === 'Complete' && !reportSummary && (
+										<span className="docket-row__unreviewed">Risk available on review</span>
 									)}
 								</button>
 							</li>
