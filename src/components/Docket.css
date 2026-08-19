@@ -20,6 +20,55 @@
 	margin: 0;
 }
 
+.docket__search {
+	display: grid;
+	gap: var(--space-1);
+	margin-top: var(--space-4);
+	color: var(--color-navy);
+	font-size: var(--font-size-xs);
+	font-weight: 700;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+}
+
+.docket__search-control {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	border-bottom: 0.125rem solid var(--color-navy);
+	background: var(--color-sheet);
+}
+
+.docket__search input {
+	width: 100%;
+	min-height: var(--control-height);
+	padding: 0 var(--space-3);
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: var(--color-ink);
+	font-size: var(--font-size-sm);
+	text-transform: none;
+}
+
+.docket__search input::placeholder {
+	color: var(--color-ink-soft);
+	opacity: 1;
+}
+
+.docket__search-control:focus-within {
+	box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--color-focus) 35%, transparent);
+}
+
+.docket__search kbd {
+	margin-right: var(--space-2);
+	padding: var(--space-1) var(--space-2);
+	border: 0.0625rem solid var(--color-rule-strong);
+	background: var(--color-paper);
+	color: var(--color-ink-soft);
+	font: inherit;
+}
+
 .docket__header h2 {
 	color: var(--color-navy);
 	font-size: var(--font-size-sm);
@@ -121,6 +170,11 @@
 
 .docket-row__meta span:last-child {
 	font-variant-numeric: tabular-nums;
+}
+
+.docket-row mark {
+	background: var(--color-pending-soft);
+	color: inherit;
 }
 
 .docket-row__risk {

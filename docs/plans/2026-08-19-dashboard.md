@@ -31,13 +31,13 @@ loads every detail before it is requested and ignores the relational API shape.
 | Docket | Five rows, status/industry controls, sorting, keyboard selection | Complete |
 | File sheet | Score/risk, financials, categories, attention and Pending | Complete |
 | Review | Fresh reviewer findings written before fixes | Complete |
-| Search | Discoverable field, `/`, Escape, highlighting, composed results | In progress |
+| Search | Discoverable field, `/`, Escape, highlighting, composed results | Complete |
 | Scale | Seeded 2,000-row fixture, measured failure, smallest earned fix | Optional |
 | Ship | README, leak grep, full verify, linear main | Pending |
 
 ## Interaction contract
 
-- Desktop: persistent docket left, continuous case file right, anchored section navigation.
+- Desktop: persistent docket left, continuous ruled case file right.
 - Mobile: docket then detail; returning restores the docket state.
 - Complete and Pending are global status filters. Industry is filterable and sortable.
 - Risk and thin-file facts appear only after detail loads; they never masquerade as global filters.

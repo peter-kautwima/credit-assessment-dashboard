@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { StatusBadge } from './ui/StatusBadge'
 import './Docket.css'
 
@@ -12,15 +12,30 @@ const sorters = {
 		left.business.name.localeCompare(right.business.name),
 }
 
-export function filterAndSortDocket(entries, { status, industry, sort }) {
+export function filterAndSortDocket(entries, { query = '', status, industry, sort }) {
 	return entries
+		.filter((entry) => {
+			const normalizedQuery = query.trim().toLocaleLowerCase()
+			if (!normalizedQuery) return true
+			return [entry.business.name, entry.business.registrationNumber, entry.business.industry].some(
+				(value) => value.toLocaleLowerCase().includes(normalizedQuery),
+			)
+		})
 		.filter((entry) => status === 'All' || entry.assessment?.status === status)
 		.filter((entry) => industry === 'All' || entry.business.industry === industry)
 		.toSorted(sorters[sort] ?? sorters.name)
 }
 
 export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportSummaries = {} }) {
-	const [filters, setFilters] = useState({ status: 'All', industry: 'All', sort: 'name' })
+	const [filters, setFilters] = useState({
+		query: '',
+		status: 'All',
+		industry: 'All',
+		sort: 'name',
+	})
+	const [announcedCount, setAnnouncedCount] = useState(entries.length)
+	const searchRef = useRef(null)
+	const restoreListFocusRef = useRef(false)
 
 	const industries = useMemo(
 		() => [...new Set(entries.map((entry) => entry.business.industry))].sort(),
@@ -36,6 +51,36 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 		onVisibleChange?.(visibleIds)
 	}, [onVisibleChange, visibleIds])
 
+	useEffect(() => {
+		if (!restoreListFocusRef.current) return
+		restoreListFocusRef.current = false
+		const focusId = visibleIds.includes(selectedId) ? selectedId : visibleIds[0]
+		document.querySelector(`[data-business-id="${focusId}"]`)?.focus()
+	}, [selectedId, visibleIds])
+
+	useEffect(() => {
+		const timeout = window.setTimeout(() => setAnnouncedCount(visibleEntries.length), 500)
+		return () => window.clearTimeout(timeout)
+	}, [visibleEntries.length])
+
+	useEffect(() => {
+		function focusSearch(event) {
+			if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
+			const target = event.target
+			if (
+				target instanceof HTMLElement &&
+				(target.matches('input, textarea, select') || target.isContentEditable)
+			) {
+				return
+			}
+			event.preventDefault()
+			searchRef.current?.focus()
+		}
+
+		document.addEventListener('keydown', focusSearch)
+		return () => document.removeEventListener('keydown', focusSearch)
+	}, [])
+
 	function updateFilter(event) {
 		const { name, value } = event.target
 		setFilters((current) => {
@@ -46,6 +91,15 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 			onVisibleChange?.(nextVisibleIds)
 			return nextFilters
 		})
+	}
+
+	function handleSearchKeyDown(event) {
+		if (event.key !== 'Escape') return
+		event.preventDefault()
+		const nextFilters = { ...filters, query: '' }
+		restoreListFocusRef.current = true
+		setFilters(nextFilters)
+		onVisibleChange?.(filterAndSortDocket(entries, nextFilters).map((entry) => entry.business.id))
 	}
 
 	function handleRowKeyDown(event) {
@@ -70,8 +124,27 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 			<div className="docket__header">
 				<div>
 					<h2 id="docket-title">Assessment docket</h2>
-					<p>{visibleEntries.length} files in view</p>
+					<p>{fileCountLabel(visibleEntries.length)}</p>
 				</div>
+
+				<label className="docket__search">
+					<span>Find a file</span>
+					<span className="docket__search-control">
+						<input
+							ref={searchRef}
+							name="query"
+							type="search"
+							value={filters.query}
+							onChange={updateFilter}
+							onKeyDown={handleSearchKeyDown}
+							placeholder="Business name, registration or industry"
+						/>
+						<kbd>/</kbd>
+					</span>
+				</label>
+				<p className="sr-only" aria-live="polite">
+					{fileCountLabel(announcedCount)}
+				</p>
 
 				<div className="docket__filters">
 					<label>
@@ -119,7 +192,7 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 									onKeyDown={handleRowKeyDown}
 								>
 									<span className="docket-row__topline">
-										<strong>{business.name}</strong>
+										<strong>{highlightMatch(business.name, filters.query)}</strong>
 										{assessment ? (
 											<StatusBadge status={assessment.status}>{assessment.status}</StatusBadge>
 										) : (
@@ -127,8 +200,8 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 										)}
 									</span>
 									<span className="docket-row__meta">
-										<span>{business.industry}</span>
-										<span>{business.registrationNumber}</span>
+										<span>{highlightMatch(business.industry, filters.query)}</span>
+										<span>{highlightMatch(business.registrationNumber, filters.query)}</span>
 									</span>
 									{assessment && (
 										<span className="docket-row__date">Assessed {assessment.createdDate}</span>
@@ -151,9 +224,31 @@ export function Docket({ entries, selectedId, onSelect, onVisibleChange, reportS
 						)
 					})
 				) : (
-					<li className="docket__empty">No files match these filters.</li>
+					<li className="docket__empty">
+						{filters.query.trim()
+							? `No file matches '${filters.query.trim()}' by name, reference or industry.`
+							: 'No files match these filters.'}
+					</li>
 				)}
 			</ul>
 		</aside>
 	)
+}
+
+function highlightMatch(value, query) {
+	const normalizedQuery = query.trim().toLocaleLowerCase()
+	if (!normalizedQuery) return value
+	const index = value.toLocaleLowerCase().indexOf(normalizedQuery)
+	if (index === -1) return value
+	return (
+		<>
+			{value.slice(0, index)}
+			<mark>{value.slice(index, index + normalizedQuery.length)}</mark>
+			{value.slice(index + normalizedQuery.length)}
+		</>
+	)
+}
+
+function fileCountLabel(count) {
+	return `${count} ${count === 1 ? 'file' : 'files'} in view`
 }

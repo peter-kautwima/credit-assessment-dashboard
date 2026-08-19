@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Docket, filterAndSortDocket } from './Docket'
 
@@ -33,6 +33,15 @@ const entries = [
 ]
 
 describe('Docket', () => {
+	beforeEach(() => {
+		vi.stubGlobal('requestAnimationFrame', (callback) => callback())
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+	})
+
 	it('filters and sorts the composed set deterministically', () => {
 		expect(
 			filterAndSortDocket(entries, { status: 'Complete', industry: 'All', sort: 'industry' }),
@@ -48,7 +57,7 @@ describe('Docket', () => {
 
 		await user.selectOptions(screen.getByLabelText('Status'), 'Pending')
 
-		expect(screen.getByText('1 files in view')).toBeVisible()
+		expect(screen.getByText('1 file in view')).toBeVisible()
 		expect(screen.queryByText('Acme Traders')).not.toBeInTheDocument()
 		expect(screen.getByText('Echo Tech Solutions')).toBeVisible()
 	})
@@ -88,5 +97,58 @@ describe('Docket', () => {
 		await user.keyboard('{ArrowDown}')
 
 		expect(rows[1]).toHaveFocus()
+	})
+
+	it('searches name, registration and industry within the active filters', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+
+		await user.selectOptions(screen.getByLabelText('Status'), 'Complete')
+		const search = screen.getByLabelText(/Find a file/)
+		await user.type(search, 'construction')
+
+		expect(screen.getByText('1 file in view')).toBeVisible()
+		expect(screen.getAllByText('Construction', { selector: 'mark' })).toHaveLength(2)
+		expect(screen.queryByText('Echo Tech Solutions')).not.toBeInTheDocument()
+		await user.clear(search)
+		await user.type(search, '2020/456789/07')
+		expect(screen.getByText('2020/456789/07', { selector: 'mark' })).toBeVisible()
+	})
+
+	it('focuses search with slash and states an unmatched query in words', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+
+		await user.keyboard('/')
+		const search = screen.getByLabelText(/Find a file/)
+		expect(search).toHaveFocus()
+		await user.type(search, 'unknown firm')
+
+		expect(
+			screen.getByText("No file matches 'unknown firm' by name, reference or industry."),
+		).toBeVisible()
+	})
+
+	it('clears search with Escape and returns focus to the selected row', async () => {
+		const user = userEvent.setup()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+		const search = screen.getByLabelText(/Find a file/)
+
+		await user.type(search, 'bright')
+		await user.keyboard('{Escape}')
+
+		expect(search).toHaveValue('')
+		expect(screen.getByRole('button', { name: /Acme Traders/ })).toHaveFocus()
+	})
+
+	it('announces the composed result count after search settles', () => {
+		vi.useFakeTimers()
+		render(<Docket entries={entries} selectedId={1} onSelect={vi.fn()} />)
+		const liveCount = document.querySelector('[aria-live="polite"]')
+
+		fireEvent.change(screen.getByLabelText(/Find a file/), { target: { value: 'bright' } })
+		expect(liveCount).toHaveTextContent('3 files in view')
+		act(() => vi.advanceTimersByTime(500))
+		expect(liveCount).toHaveTextContent('1 file in view')
 	})
 })
