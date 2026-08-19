@@ -1,7 +1,7 @@
 # Dashboard implementation plan
 
-Started at 02:09:25 SAST on 2026-08-19. Work lands on `build/dashboard` and fast-forwards to `main`
-after the final gate.
+Started at 02:09:25 SAST on 2026-08-19. Implementation began on `build/dashboard`; the finished
+linear history is published on `main`.
 
 ## Outcome
 

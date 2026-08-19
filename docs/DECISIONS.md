@@ -17,18 +17,16 @@ it would satisfy the brief. It also loads every record's detail before the analy
 anything, and discards the shape the API deliberately models.
 
 **Rejected: TanStack Query.** The right answer for an app with writes. This one has none — two
-read shapes, zero mutations. Dedupe, staleness-gated prefetch and stale-while-revalidate come to
-roughly fifty lines here, against ~859 KB unpacked. The trigger to adopt it is nameable: the first
-`POST`.
+read shapes and zero mutations. Request deduplication and failure eviction remain small here. The
+trigger to adopt it is mutation, invalidation, stale data or cross-route cache coordination.
 
 ## Search: filter immediately, debounce the announcement
 
-Filtering runs on every keystroke, with `useDeferredValue` keeping the input responsive while the
-list re-renders at lower priority. The screen-reader count is debounced to ~500 ms so it announces
-once on settle.
+Filtering runs on every keystroke. Virtualization bounds the rendered result while the screen-reader
+count is debounced to ~500 ms so it announces once on settle.
 
-Matching two thousand in-memory objects is sub-millisecond, so the cost is render priority, not
-computation. The live region is the one part that should wait — announcing on every
+At this fixture size, virtualization bounds render work. The live region is the one part that
+should wait — announcing on every
 keystroke floods a screen reader.
 
 **Rejected: a ~150 ms debounce on the filter.** Debounce protects a network call or an expensive

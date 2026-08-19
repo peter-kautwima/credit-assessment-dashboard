@@ -16,7 +16,7 @@ The system is owned by this project; it does not reproduce Lula branding.
 - The evidence sheet answers “why?” in a fixed sequence: identity, score and risk, bank-statement
   picture, score-category breakdown, then analyst notes.
 - Reported values use dark evidence ink. Calculations and interface furniture use ledger teal.
-  Attention red is reserved for High risk and Pending; no meaning depends on colour alone.
+  Attention red is reserved for High risk; Pending uses amber. No meaning depends on colour alone.
 
 ## Tokens
 

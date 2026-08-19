@@ -20,10 +20,13 @@ Where it earns its place [J]: the first mutation. `POST /assessments` plus optim
 |---|---|---|
 | Stale-while-revalidate | Render cached detail instantly, refetch behind it, swap on arrival | Back-to-list-then-into-another-record is the dominant motion in credit ops; a spinner on every return is the main thing that makes an internal tool feel slow |
 | Prefetch on hover | `onMouseEnter` **and** `onFocus`, gated by a ~100 ms intent delay and by staleness | `onFocus` matters — keyboard users never fire `mouseenter`; the delay stops a 2000-row list firing dozens of requests as the pointer crosses it |
-| Detail fan-out | `Promise.all` the four `?assessmentId=` calls, render each panel as it resolves | json-server has no join; sequential awaits stack 4× latency visibly |
+| Detail fan-out | Start the three `?assessmentId=` requests together, render each panel as it resolves | json-server has no join; sequential awaits stack latency visibly |
 | Keep-previous-data | Hold the last list while a filtered refetch is in flight | Stops the list collapsing to empty mid-typing |
 
-**Why this holds:** TanStack Query is the right answer for an app with writes. This app has none. I implemented the three behaviours it would have given me — dedupe, staleness-gated prefetch, stale-while-revalidate — in about fifty lines, and I can name the exact commit where I'd swap it in: the first mutation.
+**Implementation outcome:** the app caches and deduplicates detail requests by URL and evicts failed
+entries so Retry can issue a new request. It deliberately omits prefetch and stale-while-revalidate:
+the fixture is static, local and read-only. TanStack Query becomes worthwhile with mutations,
+invalidation or a real staleness policy.
 
 ---
 
@@ -37,7 +40,9 @@ Where it earns its place [J]: the first mutation. `POST /assessments` plus optim
 | Deps | 1 (`virtual-core`), ~57 KB unpacked [V] | 0, ~216 KB unpacked [V] |
 | Best when | You control the markup — a real `<table>`, sticky columns, grid | Plain fixed-height rows, least ceremony |
 
-**Recommendation [J]: fix the row height, then use `@tanstack/react-virtual`** — specifically because a credit list wants real table semantics (§3), and only the headless one lets me keep `<table><tbody>` markup and put ARIA where it belongs. With plain `<div>` rows, react-window 2.x is the lower-ceremony pick and I would not argue.
+**Recommendation [J]: use `@tanstack/react-virtual` when row markup and measurement must remain
+under application control.** The final docket uses semantic list markup and measured rows because a
+reviewed file gains an additional risk line.
 
 **The honest alternative.** With a *uniform* row height the mechanism is `scrollTop / rowHeight → startIndex`, slice, two spacer divs — about 40 lines. What the dependency buys over that is overscan, `scrollToIndex`, a container `ResizeObserver`, and scroll anchoring on resize. At 2000 rows and this scope, hand-rolling is defensible [J].
 
@@ -49,7 +54,8 @@ Where it earns its place [J]: the first mutation. `POST /assessments` plus optim
 - **Definite-height container.** Rows are absolutely positioned inside a spacer, so the scroll parent needs a resolved height. `height: 100%` through a chain of `auto` parents resolves to zero and the list renders one row or none [J]. Use `flex: 1; min-height: 0` or an explicit `dvh`.
 - **Key by id, never index.** With index keys React reuses the DOM node by *position*, so on scroll or filter a row's local state, focus ring and transition follow the slot rather than the record. In a credit tool that is a selection highlight landing silently on the wrong business [J].
 
-**Why this holds:** I fixed row height so measurement never happens — that removes the entire scroll-jump class of bug for free. I keyed by business id because index keys make focus follow the viewport slot instead of the record, and at 2000 rows that is a correctness bug in a tool where the selected row decides who gets credit.
+**Implementation outcome:** rows begin with a 116px estimate and are measured after render. They are
+keyed by business id so focus and measured size follow the file rather than the viewport slot.
 
 ---
 
@@ -66,7 +72,9 @@ Virtualization deletes rows from the DOM, so the browser's own counting is wrong
 
 The tension, stated plainly [J]: APG says use `table` for static data and `grid` when rows are interactive. Our rows *are* interactive — each drills into a detail view. With `table` semantics and a link per row, 2000 records is 2000 tab stops, and virtualization makes it worse, because tabbing past the rendered window lands on nothing. That is the real argument for `grid` plus roving tabindex.
 
-**Out of scope here:** a full APG grid with cell-level arrow navigation and PageUp/Down mapped to virtual scroll. **The version that fits [J]:** one focusable control per row (the row itself, `tabIndex={-1}` with a single roving `0`), Up/Down/Home/End handled on the tbody, and `scrollToIndex` *before* focusing so the target row exists in the DOM at focus time. That last step is the bug people miss, and it only appears once virtualization is on.
+**Out of scope here:** a full APG grid with cell-level navigation and PageUp/Down. The implemented
+list keeps one native button per row and adds Up/Down/Home/End traversal. When a target is outside
+the window it scrolls into the DOM before focus moves.
 
 On drill-in, move focus to the detail heading (`tabIndex={-1}`) and restore it to the originating row on return. Without restore, keyboard users land at document top on every back-navigation, which at 2000 rows is unusable [J].
 
@@ -78,18 +86,22 @@ On drill-in, move focus to the detail heading (`tabIndex={-1}`) and restore it t
 
 **Sources disagree on debounce timing.** [Algolia](https://www.algolia.com/doc/ui-libraries/autocomplete/guides/debouncing-sources) puts the preference near 200 ms with degradation past 300 ms; general guidance ranges 150–300 ms ([freeCodeCamp](https://www.freecodecamp.org/news/optimize-search-in-javascript-with-debouncing/)) and 300–500 ms for anything hitting an external resource ([Koder](https://koder.ai/blog/instant-in-app-search-ux)) [V]. The anchor underneath all of them is Nielsen's 0.1 s threshold for "reacting instantaneously" ([NN/g](https://www.nngroup.com/articles/response-times-3-important-limits/)) [V].
 
-**My position [J]: for 2000 client-side records, debouncing the filter is the wrong instrument.** Filtering 2000 objects in memory is well under a millisecond; the cost is the *render*, not the match. So filter on every keystroke and use React 18's `useDeferredValue` to keep the input at 0.1 s while the list catches up at lower priority. Zero dependencies, and it degrades better than a timer — a fast typist never sees a stalled list. Debounce only when search moves server-side to json-server's `?q=`, and then 250–300 ms.
+**My position [J]: for 2000 client-side records, debouncing the filter is the wrong instrument.**
+Filter on every keystroke and bound rendered work through virtualization. `useDeferredValue`
+remains an option if matching becomes expensive; debounce when search moves server-side.
 
 | Element | Recommendation | Note |
 |---|---|---|
 | Highlighting | `<mark>` inside the ~30 rendered rows | Cheap because virtualization already bounded the work |
 | Highlighting (newer) | [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) — Baseline June 2025, highlights "without affecting the DOM structure" [V] | MDN's own caveat: custom highlights carry no inherent semantics for AT, and it recommends `<mark>` where that matters [V] — so `<mark>` wins here |
-| Shortcut | `Cmd/Ctrl+K` to focus search, `Esc` to clear then blur | Now the dominant convention across Linear, Slack, Notion, VS Code ([Superhuman](https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/)) [V] |
-| Discoverability | A visible `⌘K` chip inside the search field | "Discoverability is a feature, not an afterthought" ([Mobbin](https://mobbin.com/glossary/command-palette)) [V] |
+| Shortcut | `/` to focus the inline filter, `Esc` to clear | Keeps command-palette conventions separate from list search |
+| Discoverability | A visible “Press / to search” hint | The control explains the shortcut without a cryptic glyph |
 
 Do not swallow the shortcut when focus is already in a text field [J]. **Out of scope here:** an actual command palette. The chip plus the shortcut is 15 lines and reads as the same intent.
 
-**Why this holds:** I didn't debounce the filter. Debounce protects a network or an expensive computation, and neither applies to 2000 objects in memory — matching is sub-millisecond. The real cost is render, so I deferred the render with `useDeferredValue` and kept the input inside Nielsen's 100 ms. Debounce comes back the moment search moves to the server.
+**Implementation outcome:** filtering is immediate and virtualization bounds the rendered result.
+Only the polite result-count announcement waits, preventing a screen reader update on every
+keystroke. Debounce becomes appropriate when search moves to a server.
 
 ---
 
@@ -106,7 +118,8 @@ opposite direction: skeleton screens scored higher on average on both perceived 
 navigation [V, from the published abstract; the full text returns 403, so no task-timing figure is
 claimed here].
 
-**Reading [J]:** the effect is small and direction-unstable, so shimmer does not earn the effort. What is robust across both is that flicker costs more than it buys. Therefore:
+**Reading [J]:** the effect is small and direction-unstable, so a loader should preserve layout
+rather than claim to make waiting objectively faster. Therefore:
 
 - **Hold the layout.** Reserve the table's height from first paint so arriving data shifts nothing. The win is zero CLS, which is measurable, rather than a perception effect that reverses between studies.
 - **Nothing under ~300 ms, skeleton rows beyond it.** Under Nielsen's 1 s flow threshold [V] a local json-server fetch usually completes before a skeleton would be worth showing.
@@ -122,10 +135,14 @@ Concretely: not "Failed to fetch" but *"Couldn't load bank statements. The API a
 
 Formatting: `Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })` and `Intl.DateTimeFormat('en-ZA')` — platform, no dependency. en-ZA uses a comma decimal separator and a non-breaking space after R, so right-align amounts with `font-variant-numeric: tabular-nums` to make columns of rands compare vertically [J].
 
-**Why this holds:** I deliberately didn't build shimmer skeletons — the two studies I found disagree on whether they help, and Viget measured them as worse than a plain spinner. What both agree on is that layout shift and flicker hurt, so I reserved the layout and showed nothing under 300 ms. The state I spent real care on is error, because in credit ops a missing score rendering as zero is a wrong decision, not a cosmetic bug.
+**Implementation outcome:** the docket holds a row-shaped loading layout and detail panels use a
+restrained surface animation that is removed under reduced motion. Error and missing-data states
+remain the priority because a missing score rendered as zero is a wrong decision, not decoration.
 
 ---
 
 ## What I'd leave out, and why
 
-In order of what adds least here: command palette (chip and shortcut only), APG-complete grid navigation (Up/Down/Home/End only), server-side search, TanStack Query, dynamic row measurement. Everything in §3's table and §5's error rule stays — those are where cutting corners produces a *wrong* dashboard rather than a plainer one.
+In order of what adds least here: command palette, APG-complete grid navigation, server-side search
+and TanStack Query. Everything in §3's list semantics and §5's error rule stays — those are where
+cutting corners produces a wrong dashboard rather than a plainer one.
