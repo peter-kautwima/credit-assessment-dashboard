@@ -46,7 +46,7 @@ CIPC `YYYY/NNNNNN/07` form, and product language follows the fixture's terms.
 
 ## Evidence on Hand
 
-- The assessment brief and required workflows are in `README.md`.
+- The assessment brief and required workflows are preserved verbatim in `README-ORIGINAL.md`.
 - The shipped API fixture and its supported fields are in `data.json`.
 - Confirmed product and engineering tradeoffs are in `docs/DECISIONS.md`.
 - Supporting technical research, including explicit verified-versus-judgement labels, is in
