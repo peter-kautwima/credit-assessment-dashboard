@@ -67,3 +67,4 @@ The generator writes only `data-2000.json`; it never replaces the shipped API fi
 - [Implementation plan](./docs/plans/2026-08-19-dashboard.md)
 - [Technical research](./docs/research.md)
 - [Review findings](./docs/reviews/2026-08-19-core.md)
+- [Future production work](./docs/FUTURE.md)
